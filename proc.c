@@ -456,4 +456,17 @@ procdump(void)
   }
 }
 
+void 
+print_sleeping(void)
+{
+  struct proc *p;
+  int *chan;
 
+  cprintf("sleep process:\n");
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->state == SLEEPING){
+      chan = p->chan;
+      cprintf("%d %s %p\n", p->pid, p->name, chan);
+    }
+  }
+}

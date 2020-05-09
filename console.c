@@ -195,6 +195,9 @@ consoleintr(int (*getc)(void))
     case C('P'):  // Process listing.
       procdump();
       break;
+    case C('R'):  // Sleeping process listing.
+      print_sleeping();
+      break;
     case C('U'):  // Kill line.
       while(input.e != input.w &&
             input.buf[(input.e-1) % INPUT_BUF] != '\n'){
