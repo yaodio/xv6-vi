@@ -16,4 +16,6 @@ sudo apt-get install libc6-dev
 sudo apt-get install libc6-dev-i386
 ```
 
-QEMU usage: use `CTRL+A+C` to quit.
+QEMU usage:
+- `CTRL+A+X` to quit.
+- `CTRL+A+C` to debug.
