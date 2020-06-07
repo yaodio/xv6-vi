@@ -23,6 +23,9 @@ void            panic(char*) __attribute__((noreturn));
 int             getcurpos(void);
 void            setcurpos(int);
 void            clearscreen(void);
+void            backupscreen(ushort*, int);
+void            recoverscreen(ushort*, int);
+
 // exec.c
 int             exec(char*, char**);
 

@@ -158,6 +158,21 @@ clearscreen(void)
   setcurpos(0);
 }
 
+// 备份当前屏幕上的所有字符
+void
+backupscreen(ushort *backup, int nbytes)
+{
+  memmove(backup, crt, nbytes);
+}
+
+// 恢复屏幕内容
+void
+recoverscreen(ushort *backup, int nbytes)
+{
+  memmove(crt, backup, nbytes);
+  setcurpos(nbytes / sizeof(crt[0])); // crt中的字符为ushort类型，占2字节
+}
+
 static void
 cgaputc(int c)
 {

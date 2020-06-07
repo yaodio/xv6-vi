@@ -447,3 +447,33 @@ sys_cls(void)
   clearscreen();
   return 0;
 }
+
+int
+sys_bks(void)
+{
+  int nbytes;
+  ushort *backup;
+
+  if(argint(1, &nbytes) < 0)
+    return -1;
+  if(argptr(0, (char**)&backup, nbytes) < 0)
+    return -1;
+
+  backupscreen(backup, nbytes);
+  return 0;
+}
+
+int
+sys_rcs(void)
+{
+  int nbytes;
+  ushort *backup;
+
+  if(argint(1, &nbytes) < 0)
+    return -1;
+  if(argptr(0, (char**)&backup, nbytes) < 0)
+    return -1;
+
+  recoverscreen(backup, nbytes);
+  return 0;
+}

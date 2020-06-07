@@ -25,7 +25,7 @@ printlines(char ** lines)
 void
 wirtetopath(char **lines, char *savepath)
 {
-  
+  // TODO: 输出到指定路径，若路径不存在，则提示输入保存路径，或者直接退出不保存
 }
 
 void
@@ -38,9 +38,7 @@ editor(char **lines, char *savepath)
   // 调试代码
   printf(1, "editor: %s\n", savepath);
   printf(1, "curpos:%d\n", getcurpos()); 
-  setcurpos(0);
-  sleep(100);
-  cls();
+  sleep(500);
   // 调试结束
   
   if(editflag)
@@ -56,6 +54,16 @@ main(int argc, char *argv[])
   char **lines = NULL;
   int fd;
   struct stat st;
+  ushort *backup;
+  int nbytes;
+
+  // 备份屏幕上的所有字符
+  nbytes = getcurpos() * sizeof(backup[0]);
+  if((backup = (ushort*)malloc(nbytes)) == NULL){
+    printf(2, "editor: cannot allocate memory to backup characters on the screen\n");
+    exit();
+  }
+  bks(backup, nbytes);
 
   // 输入了文件路径
   if(argc > 1) {
@@ -82,6 +90,13 @@ main(int argc, char *argv[])
     }
   }
 
+  // 清屏，然后进入编辑器
+  cls();
   editor(lines, path);
+
+  // 退出编辑器，并还原屏幕上的所有字符
+  rcs(backup, nbytes);
+  free(backup);
+  // TODO: free **lines
   exit();
 }

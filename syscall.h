@@ -24,3 +24,5 @@
 #define SYS_getcurpos  22
 #define SYS_setcurpos  23
 #define SYS_cls        24
+#define SYS_bks        25
+#define SYS_rcs        26
