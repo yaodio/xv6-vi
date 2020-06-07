@@ -35,9 +35,14 @@ editor(char **lines, char *savepath)
 
   // TODO: 核心程序
   printlines(lines);
+  // 调试代码
   printf(1, "editor: %s\n", savepath);
   printf(1, "curpos:%d\n", getcurpos()); 
-
+  setcurpos(0);
+  sleep(100);
+  cls();
+  // 调试结束
+  
   if(editflag)
     wirtetopath(lines, savepath);
 }

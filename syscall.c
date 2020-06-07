@@ -101,6 +101,7 @@ extern int sys_uptime(void);
 
 extern int sys_getcurpos(void);
 extern int sys_setcurpos(void);
+extern int sys_cls(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -127,6 +128,7 @@ static int (*syscalls[])(void) = {
 
 [SYS_getcurpos]   sys_getcurpos,
 [SYS_setcurpos]   sys_setcurpos,
+[SYS_cls]         sys_cls,
 };
 
 void

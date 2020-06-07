@@ -440,3 +440,10 @@ sys_setcurpos(void)
   setcurpos(pos);
   return 0;
 }
+
+int
+sys_cls(void)
+{
+  clearscreen();
+  return 0;
+}

@@ -25,6 +25,7 @@ int uptime(void);
 
 int getcurpos(void);
 int setcurpos(int);
+int cls(void);
 
 // ulib.c
 int stat(char*, struct stat*);

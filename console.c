@@ -136,7 +136,6 @@ getcurpos(void)
   pos = inb(CRTPORT+1) << 8;
   outb(CRTPORT, 15);
   pos |= inb(CRTPORT+1);
-
   return pos;
 }
 
@@ -149,6 +148,14 @@ setcurpos(int pos)
   outb(CRTPORT, 15);
   outb(CRTPORT+1, pos);
   crt[pos] = ' ' | 0x0700;
+}
+
+// 清屏
+void
+clearscreen(void)
+{
+  memset(crt, 0, sizeof(crt[0])*(24*80));
+  setcurpos(0);
 }
 
 static void

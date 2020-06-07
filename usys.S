@@ -32,3 +32,4 @@ SYSCALL(uptime)
 
 SYSCALL(getcurpos)
 SYSCALL(setcurpos)
+SYSCALL(cls)
