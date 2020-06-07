@@ -126,16 +126,35 @@ panic(char *s)
 #define CRTPORT 0x3d4
 static ushort *crt = (ushort*)P2V(0xb8000);  // CGA memory
 
-static void
-cgaputc(int c)
+// 获取光标位置
+int
+getcurpos(void)
 {
   int pos;
-  
   // Cursor position: col + 80*row.
   outb(CRTPORT, 14);
   pos = inb(CRTPORT+1) << 8;
   outb(CRTPORT, 15);
   pos |= inb(CRTPORT+1);
+
+  return pos;
+}
+
+// 设置光标位置
+void
+setcurpos(int pos)
+{
+  outb(CRTPORT, 14);
+  outb(CRTPORT+1, pos>>8);
+  outb(CRTPORT, 15);
+  outb(CRTPORT+1, pos);
+  crt[pos] = ' ' | 0x0700;
+}
+
+static void
+cgaputc(int c)
+{
+  int pos = getcurpos();
 
   if(c == '\n')
     pos += 80 - pos%80;
@@ -150,11 +169,7 @@ cgaputc(int c)
     memset(crt+pos, 0, sizeof(crt[0])*(24*80 - pos));
   }
   
-  outb(CRTPORT, 14);
-  outb(CRTPORT+1, pos>>8);
-  outb(CRTPORT, 15);
-  outb(CRTPORT+1, pos);
-  crt[pos] = ' ' | 0x0700;
+  setcurpos(pos);
 }
 
 void

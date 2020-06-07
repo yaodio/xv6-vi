@@ -423,3 +423,20 @@ sys_pipe(void)
   fd[1] = fd1;
   return 0;
 }
+
+int
+sys_getcurpos(void)
+{
+  return getcurpos();
+}
+
+int
+sys_setcurpos(void)
+{
+  int pos;
+  
+  if(argint(0, &pos) < 0)
+    return -1;
+  setcurpos(pos);
+  return 0;
+}

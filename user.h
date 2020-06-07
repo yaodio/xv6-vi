@@ -23,6 +23,9 @@ char* sbrk(int);
 int sleep(int);
 int uptime(void);
 
+int getcurpos(void);
+int setcurpos(int);
+
 // ulib.c
 int stat(char*, struct stat*);
 char* strcpy(char*, char*);

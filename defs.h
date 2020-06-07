@@ -20,6 +20,9 @@ void            cprintf(char*, ...);
 void            consoleintr(int(*)(void));
 void            panic(char*) __attribute__((noreturn));
 
+int             getcurpos(void);
+void            setcurpos(int);
+
 // exec.c
 int             exec(char*, char**);
 

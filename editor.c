@@ -9,7 +9,7 @@
 char** 
 readlines(int fd)
 {
-  char** lines;
+  char** lines = NULL;
   // TODO: 读取所有行
 
   return lines;
@@ -23,11 +23,23 @@ printlines(char ** lines)
 }
 
 void
+wirtetopath(char **lines, char *savepath)
+{
+  
+}
+
+void
 editor(char **lines, char *savepath) 
 {
+  int editflag = 0;
+
+  // TODO: 核心程序
   printlines(lines);
   printf(1, "editor: %s\n", savepath);
-  // TODO: 核心程序
+  printf(1, "curpos:%d\n", getcurpos()); 
+
+  if(editflag)
+    wirtetopath(lines, savepath);
 }
 
 // 命令行输入：editor [path]
