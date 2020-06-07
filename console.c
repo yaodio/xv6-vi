@@ -126,6 +126,10 @@ panic(char *s)
 #define CRTPORT 0x3d4
 static ushort *crt = (ushort*)P2V(0xb8000);  // CGA memory
 
+#define SCREEN_WIDTH  80                            // 屏幕宽度（列数）
+#define SCREEN_HEIGHT 24                            // 屏幕高度（行数）
+#define MAX_CHAR      SCREEN_WIDTH * SCREEN_HEIGHT  // 屏幕最多能容纳的字符数
+
 // 获取光标位置
 int
 getcurpos(void)
@@ -143,6 +147,12 @@ getcurpos(void)
 void
 setcurpos(int pos)
 {
+  // 范围检查
+  if(pos < 0)
+    pos = 0;
+  else if(pos >= MAX_CHAR)
+    pos = MAX_CHAR - 1;
+
   outb(CRTPORT, 14);
   outb(CRTPORT+1, pos>>8);
   outb(CRTPORT, 15);
@@ -154,7 +164,7 @@ setcurpos(int pos)
 void
 clearscreen(void)
 {
-  memset(crt, 0, sizeof(crt[0])*(24*80));
+  memset(crt, 0, sizeof(crt[0])*MAX_CHAR);
   setcurpos(0);
 }
 
@@ -173,22 +183,25 @@ recoverscreen(ushort *backup, int nbytes)
   setcurpos(nbytes / sizeof(crt[0])); // crt中的字符为ushort类型，占2字节
 }
 
+// 向屏幕输出1个字符
 static void
 cgaputc(int c)
 {
   int pos = getcurpos();
 
+  // 回车键 加上这一行剩余的空白数，即pos移到下一行行首
   if(c == '\n')
-    pos += 80 - pos%80;
+    pos += SCREEN_WIDTH - pos%SCREEN_WIDTH;
+  // 退格键 pos退1个
   else if(c == BACKSPACE){
     if(pos > 0) --pos;
   } else
     crt[pos++] = (c&0xff) | 0x0700;  // black on white
   
-  if((pos/80) >= 24){  // Scroll up.
-    memmove(crt, crt+80, sizeof(crt[0])*23*80);
-    pos -= 80;
-    memset(crt+pos, 0, sizeof(crt[0])*(24*80 - pos));
+  if((pos/SCREEN_WIDTH) >= SCREEN_HEIGHT){  // Scroll up.
+    memmove(crt, crt+SCREEN_WIDTH, sizeof(crt[0])*(SCREEN_HEIGHT-1)*SCREEN_WIDTH);
+    pos -= SCREEN_WIDTH;
+    memset(crt+pos, 0, sizeof(crt[0])*(MAX_CHAR - pos));
   }
   
   setcurpos(pos);
