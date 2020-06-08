@@ -23,6 +23,7 @@ static struct {
   int locking;
 } cons;
 
+// 打印整数xx，指定进制为base，sign为正负号
 static void
 printint(int xx, int base, int sign)
 {
@@ -49,6 +50,7 @@ printint(int xx, int base, int sign)
 }
 //PAGEBREAK: 50
 
+// 打印到控制台上，不同于printf，后者可打印到指定描述符
 // Print to the console. only understands %d, %x, %p, %s.
 void
 cprintf(char *fmt, ...)
@@ -74,23 +76,23 @@ cprintf(char *fmt, ...)
     if(c == 0)
       break;
     switch(c){
-    case 'd':
+    case 'd': // 十进制有符号整数
       printint(*argp++, 10, 1);
       break;
-    case 'x':
-    case 'p':
+    case 'x': // 十六进制无符号整数
+    case 'p': // 十六进制无符号整数（指针地址）
       printint(*argp++, 16, 0);
       break;
-    case 's':
+    case 's': // 字符串
       if((s = (char*)*argp++) == 0)
         s = "(null)";
       for(; *s; s++)
         consputc(*s);
       break;
-    case '%':
+    case '%': // 输出百分号%
       consputc('%');
       break;
-    default:
+    default:  // 其他未知情况输出百分号加上该字符%c
       // Print unknown % sequence to draw attention.
       consputc('%');
       consputc(c);
@@ -234,6 +236,7 @@ struct {
 
 #define C(x)  ((x)-'@')  // Control-x
 
+// 控制台的键盘输入中断处理函数（见trap.c）
 void
 consoleintr(int (*getc)(void))
 {
@@ -248,14 +251,14 @@ consoleintr(int (*getc)(void))
     case C('R'):  // Sleeping process listing.
       print_sleeping();
       break;
-    case C('U'):  // Kill line.
+    case C('U'):  // Kill line. 删除一整行
       while(input.e != input.w &&
             input.buf[(input.e-1) % INPUT_BUF] != '\n'){
         input.e--;
         consputc(BACKSPACE);
       }
       break;
-    case C('H'): case '\x7f':  // Backspace
+    case C('H'): case '\x7f':  // Backspace ctrl+H等效于退格键
       if(input.e != input.w){
         input.e--;
         consputc(BACKSPACE);
@@ -277,6 +280,7 @@ consoleintr(int (*getc)(void))
   release(&input.lock);
 }
 
+// 处理定向到控制台的输入
 int
 consoleread(struct inode *ip, char *dst, int n)
 {
@@ -315,6 +319,7 @@ consoleread(struct inode *ip, char *dst, int n)
   return target - n;
 }
 
+// 处理定向到控制台的输出，如printf
 int
 consolewrite(struct inode *ip, char *buf, int n)
 {
@@ -330,12 +335,14 @@ consolewrite(struct inode *ip, char *buf, int n)
   return n;
 }
 
+// 控制台初始化
 void
 consoleinit(void)
 {
   initlock(&cons.lock, "console");
   initlock(&input.lock, "input");
-
+  
+  // 指定定向到控制台的输入输出处理函数
   devsw[CONSOLE].write = consolewrite;
   devsw[CONSOLE].read = consoleread;
   cons.locking = 1;
