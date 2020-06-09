@@ -61,7 +61,7 @@ editor(char **lines, char *savepath)
       // TODO: 进入编辑模式
       printf(1,"i!");
       break;
-    
+
     // TODO: 添加其他case
     default:
       break;
@@ -73,7 +73,7 @@ editor(char **lines, char *savepath)
   }
 
   // 命令行输入：editor [path]
-  // 文件路径path为可选参数，若无则在“临时文件”中使用editor
+  // 文件路径path为可选参数，若无则在“临时文件”中使用editor.
   int
   main(int argc, char *argv[])
   {
