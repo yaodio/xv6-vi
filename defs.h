@@ -25,7 +25,7 @@ void            setcurpos(int);
 void            clearscreen(void);
 void            backupscreen(ushort*, int);
 void            recoverscreen(ushort*, int);
-
+void            setflag(int, int);
 // exec.c
 int             exec(char*, char**);
 

@@ -104,6 +104,7 @@ extern int sys_setcurpos(void);
 extern int sys_cls(void);
 extern int sys_bks(void);
 extern int sys_rcs(void);
+extern int sys_consflag(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -133,6 +134,7 @@ static int (*syscalls[])(void) = {
 [SYS_cls]         sys_cls,
 [SYS_bks]         sys_bks,
 [SYS_rcs]         sys_rcs,
+[SYS_consflag]    sys_consflag,
 };
 
 void

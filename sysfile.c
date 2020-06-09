@@ -477,3 +477,17 @@ sys_rcs(void)
   recoverscreen(backup, nbytes);
   return 0;
 }
+
+int
+sys_consflag(void)
+{
+  int sf, bf;
+  
+  if(argint(0, &sf) < 0)
+    return -1;
+  if(argint(1, &bf) < 0)
+    return -1;
+  
+  setflag(sf, bf);
+  return 0;
+}

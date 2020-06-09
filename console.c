@@ -236,6 +236,17 @@ struct {
 
 #define C(x)  ((x)-'@')  // Control-x
 
+static int showflag = 1; // 为0时不打印到屏幕上
+static int bufflag = 1;  // 为0时不缓存键盘输入，马上读取1个字符
+
+// 设置bufflag和showflag
+void
+setflag(int sf, int bf)
+{
+  showflag = sf;
+  bufflag = bf;
+}
+
 // 控制台的键盘输入中断处理函数（见trap.c）
 void
 consoleintr(int (*getc)(void))
@@ -268,8 +279,9 @@ consoleintr(int (*getc)(void))
       if(c != 0 && input.e-input.r < INPUT_BUF){
         c = (c == '\r') ? '\n' : c;
         input.buf[input.e++ % INPUT_BUF] = c;
-        consputc(c);
-        if(c == '\n' || c == C('D') || input.e == input.r+INPUT_BUF){
+        if(showflag)
+          consputc(c);
+        if(!bufflag || c == '\n' || c == C('D') || input.e == input.r+INPUT_BUF){
           input.w = input.e;
           wakeup(&input.r);
         }
