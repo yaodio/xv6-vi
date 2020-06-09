@@ -63,15 +63,21 @@ typedef struct text {
 void
 printlines(text *tx)
 {
-  int flag = 0;
+  int nrow = 0;
   line *tmp = tx->show;
 
   while(tmp != NULL){
-    // 不是第一行，则先换行再输出
-    if(flag)
-      printf(1, "\n");
+    // 保留底线行（最多输出 SCREEN_HEIGHT-1 行）
+    if(nrow >= SCREEN_HEIGHT - 1)
+      break;
+
     printf(1, "%s", tmp->chs);
-    flag = 1;
+    // 如果当前行不满80个字符，且还有下一行，才输出\n
+    // 如果当前行不满80个字符，但没有下一行，不用输出\n
+    // 若当前行已满80个字符，cga会自动换行（pos+1, 见console.c的cgaputc函数)，所以也不用显式输出\n
+    if(tmp->next != NULL && tmp->n < SCREEN_WIDTH)
+      printf(1, "\n");
+    nrow++;
     tmp = tmp->next;
   }
 }
