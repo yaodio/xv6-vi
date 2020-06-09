@@ -13,6 +13,7 @@
 #include "mmu.h"
 #include "proc.h"
 #include "x86.h"
+#include "console.h"
 
 static void consputc(int);
 
@@ -127,10 +128,6 @@ panic(char *s)
 #define BACKSPACE 0x100
 #define CRTPORT 0x3d4
 static ushort *crt = (ushort*)P2V(0xb8000);  // CGA memory
-
-#define SCREEN_WIDTH  80                            // 屏幕宽度（列数）
-#define SCREEN_HEIGHT 24                            // 屏幕高度（行数）
-#define MAX_CHAR      SCREEN_WIDTH * SCREEN_HEIGHT  // 屏幕最多能容纳的字符数
 
 // 获取光标位置
 int
