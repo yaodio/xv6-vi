@@ -56,7 +56,7 @@ typedef struct text {
   char *path;   // 文件路径
   line *head;   // 首行
   line *tail;   // 尾行
-  line *show;   // 屏幕上显示的第1行
+  line *show;   // 屏幕上显示的第0行
 } text;
 
 // 打印所有行
@@ -92,6 +92,28 @@ readc()
     if(read(0, buf, 1) > 0 && buf[0] != 0)
       return buf[0];
   }
+}
+
+// TODO：这个函数还没有测试过，等支持处理方向键后再测试
+// 获取在光标pos位置上的字符
+char
+getcatpos(text *tx, int pos)
+{
+  int row, col;
+  line *tmp;
+  // TODO：检查pos的值，防止越界（可能第row行不存在，超出了双向链表范围）
+
+  // pos = row * SCREEN_WIDTH + col
+  row = pos / SCREEN_WIDTH; // 光标在屏幕的第row行
+  col = pos % SCREEN_WIDTH; // 光标在屏幕的第col行
+
+  // 从屏幕第0行开始，找到第row行
+  tmp = tx->show;
+  while(row--){
+    tmp = tmp->next;
+  }
+  // 返回第row行的第col个字符
+  return tmp->chs[col];
 }
 
 void
