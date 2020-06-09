@@ -178,6 +178,7 @@ backupscreen(ushort *backup, int nbytes)
 void
 recoverscreen(ushort *backup, int nbytes)
 {
+  clearscreen();
   memmove(crt, backup, nbytes);
   setcurpos(nbytes / sizeof(crt[0])); // crt中的字符为ushort类型，占2字节
 }
