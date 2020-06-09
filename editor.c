@@ -3,6 +3,7 @@
 #include "user.h"
 #include "fcntl.h"
 #include "console.h"
+#include "kbd.h"
 
 #define NULL 0  // 空指针
 
@@ -143,6 +144,23 @@ editor(text *tx)
     case 'i':
       // TODO: 进入编辑模式
       printf(1,"i!");
+      break;
+
+    // 方向键上
+    case KEY_UP:
+      // TODO
+      break;
+    // 方向键下
+    case KEY_DN:
+      // TODO
+      break;
+    // 方向键左
+    case KEY_LF:
+      // TODO
+      break;
+    // 方向键右
+    case KEY_RT:
+      // TODO
       break;
 
     // case 'e' 只是调试用的
