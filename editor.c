@@ -22,6 +22,18 @@ printlines(char **lines)
   // TODO: check NULL and print
 }
 
+// 从标准输入（键盘）读入1个字符
+char
+readc()
+{
+  static char buf[1];
+
+  while (1){
+    if(read(0, buf, 1) > 0 && buf[0] != 0)
+      return buf[0];
+  }
+}
+
 void
 wirtetopath(char **lines, char *savepath)
 {
@@ -31,26 +43,30 @@ wirtetopath(char **lines, char *savepath)
 void
 editor(char **lines, char *savepath)
 {
-
-  int n;
-  char buf[1];
   int editflag = 0;
-
+  char c;
   // TODO: 核心程序
   printlines(lines);
   // 调试代码
   // printf(1, "editor: %s\n", savepath);
   // printf(1, "curpos:%d\n", getcurpos());
+  // sleep(500);
+  // 调试结束
 
-  while((n = read(0, buf, 1)) > 0){ //不断从键盘读入字符
-    if(buf[0] != 0){
-      if(buf[0] == 'i')
-        printf(1,"i!");
+  // 不断读取1个字符进行处理
+  while(1){
+    c = readc();
+    switch(c){
+    case 'i':
+      // TODO: 进入编辑模式
+      printf(1,"i!");
+      break;
+    
+    // TODO: 添加其他case
+    default:
+      break;
     }
   }
-
-    sleep(500);
-    // 调试结束
 
     if(editflag)
       wirtetopath(lines, savepath);
@@ -61,12 +77,12 @@ editor(char **lines, char *savepath)
   int
   main(int argc, char *argv[])
   {
-    char *path = NULL;
-    char **lines = NULL;
-    int fd;
-    struct stat st;
-    ushort *backup;
-    int nbytes;
+    char *path = NULL;      // 文件路径
+    char **lines = NULL;    // 文件内容
+    int fd;                 // 文件描述符
+    struct stat st;         // 文件信息
+    ushort *backup;         // 屏幕字符备份
+    int nbytes;             // 屏幕字符备份内容的字节大小
 
     // 备份屏幕上的所有字符
     nbytes = getcurpos() * sizeof(backup[0]);
@@ -101,12 +117,12 @@ editor(char **lines, char *savepath)
       }
     }
 
-    // 清屏，然后进入编辑器
+    // 清屏，关闭控制台的flag，然后进入编辑器
     cls();
     consflag(0,0);
     editor(lines, path);
 
-    // 退出编辑器，并还原屏幕上的所有字符
+    // 退出编辑器，开启控制台的flag，并还原屏幕上的所有字符
     consflag(1,1);
     rcs(backup, nbytes);
     free(backup);
