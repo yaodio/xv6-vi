@@ -1,0 +1,1 @@
+#define DEFAULT_COLOR       0x0700      // 默认黑色背景灰色文本 
