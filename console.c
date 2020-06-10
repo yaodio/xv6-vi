@@ -184,6 +184,17 @@ recoverscreen(ushort *backup, int nbytes)
   setcurpos(pos, crt[pos]); // crt中的字符为ushort类型，占2字节
 }
 
+// 在屏幕的pos位置处设置字符（不移动光标），传入的int c仅低16位有效
+// 其中从右往左数：
+// 第0~7位   字符的ascii码值
+// 第8~11位  文本色
+// 第12~15位 背景色
+void
+showc(int pos, int c)
+{
+  crt[pos] = c & 0xffff;
+}
+
 // 向屏幕输出1个字符
 static void
 cgaputc(int c)
@@ -198,7 +209,8 @@ cgaputc(int c)
     if(pos > 0) --pos;
     crt[pos] = ' ';
   } else
-    crt[pos++] = (c&0xff) | 0x0700;  // black on white
+    showc(pos++, (c&0xff) | 0x0700);
+    // crt[pos++] = (c&0xff) | 0x0700;  // black on white
   
   if((pos/SCREEN_WIDTH) >= SCREEN_HEIGHT){  // Scroll up.
     memmove(crt, crt+SCREEN_WIDTH, sizeof(crt[0])*(SCREEN_HEIGHT-1)*SCREEN_WIDTH);

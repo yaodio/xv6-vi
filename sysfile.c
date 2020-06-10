@@ -493,3 +493,17 @@ sys_consflag(void)
   setflag(sf, bf);
   return 0;
 }
+
+int
+sys_putcc(void)
+{
+  int pos, c;
+  
+  if(argint(0, &pos) < 0)
+    return -1;
+  if(argint(1, &c) < 0)
+    return -1;
+  
+  showc(pos, c);
+  return 0;
+}
