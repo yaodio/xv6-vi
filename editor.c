@@ -42,26 +42,22 @@ newlines(char *chs, uint n)
   return l;
 }
 
-// 打印所有行
+// 从屏幕上第 row 行开始打印指定行 l 以及其后面的行，直到屏幕写满
 void
-printlines(text *tx)
+printlines(line *l, int row)
 {
-  int nrow = 0;
-  line *tmp = tx->show;
+  int nrow = row;
 
-  while(tmp != NULL){
-    // 保留底线行（最多输出 SCREEN_HEIGHT-1 行）
-    if(nrow >= SCREEN_HEIGHT - 1)
-      break;
-
-    printf(1, "%s", tmp->chs);
+  // 保留底线行（最多输出 SCREEN_HEIGHT-1 行）
+  while(l != NULL && nrow < SCREEN_HEIGHT - 1){
+    printf(1, "%s", l->chs);
     // 如果当前行不满80个字符，且还有下一行，才输出\n
     // 如果当前行不满80个字符，但没有下一行，不用输出\n
     // 若当前行已满80个字符，cga会自动换行（pos+1, 见console.c的cgaputc函数)，所以也不用显式输出\n
-    if(tmp->next != NULL && tmp->n < SCREEN_WIDTH)
+    if(l->next != NULL && l->n < SCREEN_WIDTH)
       printf(1, "\n");
     nrow++;
-    tmp = tmp->next;
+    l = l->next;
   }
 }
 
@@ -104,6 +100,14 @@ wirtetopath(text *tx)
 {
   // TODO: 输出到tx->path，若路径不存在，则提示输入保存路径，或者直接退出不保存
 }
+
+// 在指定行的第i个位置插入字符c
+void
+insertc(line *l, int i, char c)
+{
+  //TODO
+}
+
 void 
 insert(text *tx)
 {
@@ -116,19 +120,16 @@ insert(text *tx)
   while(row--){
     tmp = tmp->next;
   }
-  // 返回第row行的第col个字符
-  while(1){
-    uchar c = readc();
-    if(c==KEY_ESC) //Exit insert function
-      break;
-    int line_len = tmp->n;
-    for(int i = line_len;i>col;i--)
-      tmp->chs[i] = tmp->chs[i-1];
-    tmp->chs[col] = c;
-    col+=1;
-    cls();
-    printlines(tx);
-    setcurpos(pos+1, c);
+
+  uchar c;
+  // 循环读取1个字符，如果是ESC则结束
+  while((c = readc()) != KEY_ESC){
+    // 在第row行的col列插入字符c
+    insertc(tmp, col, c);
+    // 重新打印该行以及之后的行
+    printlines(tmp, row);
+    // 光标设置到第row行的col+1列的位置，显示该位置的字符
+    setcurpos(pos+1, tmp->chs[col+1]);
     pos++;
   }
 }
@@ -138,7 +139,7 @@ editor(text *tx)
   int editflag = 0;
   uchar c;
   // TODO: 核心程序
-  printlines(tx);
+  printlines(tx->show, 0);
   // 光标移至左上角（pos=0），并输出该位置的字符
   setcurpos(0, getcatpos(tx, 0));
   // 调试代码
