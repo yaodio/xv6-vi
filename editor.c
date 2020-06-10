@@ -149,17 +149,18 @@ insertc(line *l, int i, uchar c)
 void 
 insert(void)
 {
+  uchar c;
   int pos = getcurpos();
   int row = pos / SCREEN_WIDTH; // 光标在屏幕的第row行
   int col = pos % SCREEN_WIDTH; // 光标在屏幕的第col行
 
   // 从屏幕第0行开始，找到第row行
   line* tmp = tx.show;
-  while(row--){
+  int i = row;
+  while(i--){
     tmp = tmp->next;
   }
 
-  uchar c;
   // 循环读取1个字符，如果是ESC则结束
   while((c = readc()) != KEY_ESC){
     // 在第row行的col列插入字符c
