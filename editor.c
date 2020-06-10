@@ -110,31 +110,38 @@ wirtetopath(void)
 void
 insertc(line *l, int i, uchar c)
 {
-  if(l->n<SCREEN_WIDTH)//if line is not full
-  {
-    for(int j=l->n;j>i;j--)
+  int j;
+  ushort lastc;
+  char chs[1];
+
+  // 该行未满
+  if(l->n < MAX_COL){
+    for(j = l->n; j > i; j--)
       l->chs[j] = l->chs[j-1];
     l->chs[i] = c | DEFAULT_COLOR;
     l->n++;
   }
-  else
-  {
-    ushort last_char = l->chs[SCREEN_WIDTH-1];//put the last char at the beginning of nest line
-    for(int j=SCREEN_WIDTH-1;j>i;j--)
+  // 该行已满
+  else{
+    // 保存该行最后1个字符，放到下一行行首
+    lastc = l->chs[MAX_COL-1];
+    
+    for(j = MAX_COL-1; j > i; j--)
       l->chs[j] = l->chs[j-1];
     l->chs[i] = c | DEFAULT_COLOR;
+
+    // 下一行是同一段
     if(l->paragraph)
-      insertc(l->next,0,last_char&0x00ff);
-    else
-    {
+      insertc(l->next, 0, lastc & 0x00ff);
+    // 下一行不是同一段，插入新行
+    else{
       l->paragraph = 1;
-      char *chs = (char*)malloc(1);
-      chs[0] = c;
-      line *new_l =  newlines(chs,1);
-      new_l->next = l->next;
-      l->next->prev = new_l;
-      l->next = new_l;
-      new_l->prev = l;
+      chs[0] = lastc;
+      line *newl =  newlines(chs,1);
+      newl->next = l->next;
+      l->next->prev = newl;
+      l->next = newl;
+      newl->prev = l;
     }
   }
 }
@@ -142,23 +149,23 @@ insertc(line *l, int i, uchar c)
 void 
 insert(void)
 {
+  uchar c;
   int pos = getcurpos();
   int row = pos / SCREEN_WIDTH; // 光标在屏幕的第row行
   int col = pos % SCREEN_WIDTH; // 光标在屏幕的第col行
 
   // 从屏幕第0行开始，找到第row行
   line* tmp = tx.show;
-  while(row--){
+  int i = row;
+  while(i--){
     tmp = tmp->next;
   }
 
-  uchar c;
   // 循环读取1个字符，如果是ESC则结束
   while((c = readc()) != KEY_ESC){
     // 在第row行的col列插入字符c
     insertc(tmp, col, c);
-    // 重新打印该行以及之后的行（打印前光标先移动到行首）
-    setcurpos(row * SCREEN_WIDTH,0);
+    // 重新打印该行以及之后的行
     printlines(row, tmp);
     // 光标设置到第row行的col+1列的位置，显示该位置的字符
     setcurpos(pos+1, tmp->chs[col+1]);
