@@ -122,7 +122,34 @@ wirtetopath(text *tx)
 {
   // TODO: 输出到tx->path，若路径不存在，则提示输入保存路径，或者直接退出不保存
 }
+void 
+insert(text *tx)
+{
+  int pos = getcurpos();
+  int row = pos / SCREEN_WIDTH; // 光标在屏幕的第row行
+  int col = pos % SCREEN_WIDTH; // 光标在屏幕的第col行
 
+  // 从屏幕第0行开始，找到第row行
+  line* tmp = tx->show;
+  while(row--){
+    tmp = tmp->next;
+  }
+  // 返回第row行的第col个字符
+  while(1){
+    char c = readc();
+    if(c=='q') //Exit insert function
+      break;
+    int line_len = tmp->n;
+    for(int i = line_len;i>col;i--)
+      tmp->chs[i] = tmp->chs[i-1];
+    tmp->chs[col] = c;
+    col+=1;
+    cls();
+    printlines(tx);
+    setcurpos(pos+1);
+    pos++;
+  }
+}
 void
 editor(text *tx)
 {
@@ -142,8 +169,9 @@ editor(text *tx)
     c = readc();
     switch(c){
     case 'i':
+      insert(tx);
       // TODO: 进入编辑模式
-      printf(1,"i!");
+      //printf(1,"i!");
       break;
 
     // 方向键上
