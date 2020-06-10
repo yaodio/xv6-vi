@@ -4,6 +4,7 @@ typedef struct line {
   uint n;                   // 该行的字符数，理论上应该 n <= SCREEN_WIDTH
   struct line *prev;        // 上一行指针
   struct line *next;        // 下一行指针
+  int paragraph;            // 当为1时表示与下一行是同一段
 } line;
 
 // 文本结构体（双向链表，每个节点表示一行）

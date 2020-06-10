@@ -12,6 +12,7 @@ newlines(char *chs, uint n)
   int i;
   line *l = (line*)malloc(sizeof(line));
   l->n = 0;
+  l->paragraph = 0;
   l->prev = l->next = NULL;
   
   // 空行
@@ -27,10 +28,11 @@ newlines(char *chs, uint n)
       l->next->prev = l;
       break;
     }
-    // 写满一行
+    // 写满一行，则下一行与该行同段
     if(i >= SCREEN_WIDTH){
       l->next = newlines(chs+i, n-i);
       l->next->prev = l;
+      l->paragraph = 1;
       break;
     }
     // 填写一行中
