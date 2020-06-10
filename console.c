@@ -14,6 +14,7 @@
 #include "proc.h"
 #include "x86.h"
 #include "console.h"
+#include "kbd.h"
 
 static void consputc(int);
 

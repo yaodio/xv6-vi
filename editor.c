@@ -5,6 +5,7 @@
 #include "console.h"
 #include "color.h"
 #include "editor.h"
+#include "kbd.h"
 
 // 根据传入的字符数组，构造双向链表，每个节点是一行
 line*
@@ -172,6 +173,7 @@ void
 editor(void)
 {
   int editflag = 0;
+  int pos;
   uchar c;
   printlines(0, tx.show);
   // 光标移至左上角（pos=0），并输出该位置的字符
@@ -193,24 +195,28 @@ editor(void)
       break;
 
     // 方向键上
+    // TODO: 向上、下翻页
     case KEY_UP:
-      // TODO
-      printf(1,"UP");
+      pos = getcurpos();
+      pos = (pos / SCREEN_WIDTH - 1) * SCREEN_WIDTH + pos % SCREEN_WIDTH;
+      if (pos >= 0)
+        setcurpos(pos, getcatpos(pos));
       break;
     // 方向键下
+    // FIXME: 到底就不再往下
     case KEY_DN:
-      // TODO
-      printf(1,"DN");
+      pos = getcurpos();
+      pos = (pos/SCREEN_WIDTH + 1) * SCREEN_WIDTH + pos % SCREEN_WIDTH;
+      setcurpos(pos, getcatpos(pos));
       break;
     // 方向键左
     case KEY_LF:
-      // TODO
-      printf(1,"LF");
+      if (getcurpos() > 0)
+        setcurpos(getcurpos()-1, getcatpos(getcurpos()-1));
       break;
     // 方向键右
     case KEY_RT:
-      // TODO
-      printf(1,"RT");
+      setcurpos(getcurpos()+1, getcatpos(getcurpos()+1));
       break;
 
     // ESC
