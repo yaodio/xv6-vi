@@ -3,17 +3,7 @@
 #include "user.h"
 #include "fcntl.h"
 #include "console.h"
-#include "kbd.h"
-
-#define NULL 0  // 空指针
-
-// 行结构体（双向链表节点）
-typedef struct line {
-  char chs[SCREEN_WIDTH+1]; // 一行字符，+1是为了末尾填入'\0'
-  uint n;                   // 该行的字符数，理论上应该 n <= SCREEN_WIDTH
-  struct line *prev;        // 上一行指针
-  struct line *next;        // 下一行指针
-} line;
+#include "editor.h"
 
 // 根据传入的字符数组，构造双向链表，每个节点是一行
 line*
@@ -52,14 +42,6 @@ newlines(char *chs, uint n)
   return l;
 }
 
-// 文本结构体（双向链表，每个节点表示一行）
-typedef struct text {
-  char *path;   // 文件路径
-  line *head;   // 首行
-  line *tail;   // 尾行
-  line *show;   // 屏幕上显示的第0行
-} text;
-
 // 打印所有行
 void
 printlines(text *tx)
@@ -84,13 +66,13 @@ printlines(text *tx)
 }
 
 // 从标准输入（键盘）读入1个字符
-char
+uchar
 readc()
 {
-  static char buf[1];
+  static uchar buf[1];
 
   while (1){
-    if(read(0, buf, 1) > 0 && buf[0] != 0)
+    if(read(0, buf, sizeof(buf[0])) > 0 && buf[0] != 0)
       return buf[0];
   }
 }
@@ -127,7 +109,7 @@ void
 editor(text *tx)
 {
   int editflag = 0;
-  char c;
+  uchar c;
   // TODO: 核心程序
   printlines(tx);
   setcurpos(0);
@@ -149,18 +131,28 @@ editor(text *tx)
     // 方向键上
     case KEY_UP:
       // TODO
+      printf(1,"UP");
       break;
     // 方向键下
     case KEY_DN:
       // TODO
+      printf(1,"DN");
       break;
     // 方向键左
     case KEY_LF:
       // TODO
+      printf(1,"LF");
       break;
     // 方向键右
     case KEY_RT:
       // TODO
+      printf(1,"RT");
+      break;
+
+    // ESC
+    case KEY_ESC:
+      // TODO
+      printf(1,"ESC");
       break;
 
     // case 'e' 只是调试用的
