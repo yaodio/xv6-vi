@@ -19,8 +19,8 @@ static struct text {
 } tx = {NULL,NULL,NULL,NULL}; // 全局文档变量
 
 // 键盘按键
-#define KEY_UP        0xE2    // 上
-#define KEY_DN        0xE3    // 下
-#define KEY_LF        0xE4    // 左
-#define KEY_RT        0xE5    // 右
-#define KEY_ESC       0x1B    // ESC
+//#define KEY_UP        0xE2    // 上
+//#define KEY_DN        0xE3    // 下
+//#define KEY_LF        0xE4    // 左
+//#define KEY_RT        0xE5    // 右
+//#define KEY_ESC       0x1B    // ESC
