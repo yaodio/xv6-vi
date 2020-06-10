@@ -107,7 +107,37 @@ wirtetopath(text *tx)
 void
 insertc(line *l, int i, char c)
 {
-  //TODO
+  if(l->n<SCREEN_WIDTH)//if line is not full
+  {
+    for(int j=l->n+1;j>i;j--)
+      l->chs[j] = l->chs[j-1];
+    l->chs[i] = c;
+    l->n++;
+  }
+  else
+  {
+    char last_char = l->chs[SCREEN_WIDTH-1];//put the last char at the beginning of nest line
+    for(int j=SCREEN_WIDTH-1;j>i;j--)
+      l->chs[j] = l->chs[j-1];
+      l->chs[i] = c;
+    if(l->paragraph)
+      insertc(l->next,0,last_char);
+    else
+    {
+      line *new_l = (line*)malloc(sizeof(line));
+      new_l->n = 1;
+      new_l->paragraph = 0;
+      new_l->chs[0] = last_char;
+      new_l->chs[1] = '\0';
+      
+      line *third_line = l->next;
+      l->next = new_l;
+      new_l->next = third_line;
+      third_line->prev = new_l;
+      new_l->prev = l;
+      l->paragraph = 1;
+    }
+  }
 }
 
 void 
@@ -129,11 +159,13 @@ insert(text *tx)
     // 在第row行的col列插入字符c
     insertc(tmp, col, c);
     // 重新打印该行以及之后的行（打印前光标先移动到行首）
-    setcurpos(row * SCREEN_WIDTH, 0);
+    setcurpos(row * SCREEN_WIDTH,0);
     printlines(tmp, row);
     // 光标设置到第row行的col+1列的位置，显示该位置的字符
     setcurpos(pos+1, tmp->chs[col+1]);
     pos++;
+    row = pos / SCREEN_WIDTH; // 光标在屏幕的第row行
+    col = pos % SCREEN_WIDTH; // 光标在屏幕的第col行
   }
 }
 void
