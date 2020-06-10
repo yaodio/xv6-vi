@@ -1,6 +1,7 @@
 #define NULL          0       // 空指针
 
 #define MAX_COL SCREEN_WIDTH  // 每行最大字符数设为屏幕宽度
+
 // 行结构体（双向链表节点）
 typedef struct line {
   ushort chs[MAX_COL];        // 一行字符(每个字符2字节，高8位是颜色，低8位是ascii码)
@@ -15,5 +16,11 @@ static struct text {
   char *path;                 // 文件路径
   line *head;                 // 首行
   line *tail;                 // 尾行
-  line *show;                 // 屏幕上显示的第0行
 } tx = {NULL,NULL,NULL,NULL}; // 全局文档变量
+
+// 光标结构体
+static struct cursor {
+  int row;                    // 光标所在行
+  int col;                    // 光标所在列
+  line *l;                    // 光标指向的行节点
+} cur = {0, 0, NULL};         // 全局光标变量

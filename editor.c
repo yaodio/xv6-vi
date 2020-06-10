@@ -7,6 +7,125 @@
 #include "editor.h"
 #include "kbd.h"
 
+void printline(int row, line *l);
+void printlines(int row, line *l);
+
+/********************光标操作********************/
+/*                                             */
+
+// 根据光标所在屏幕的行数，往前推出屏幕上指向的第0行
+line*
+getfirstline(void)
+{
+  int row = cur.row;
+  line* first = cur.l;
+  
+  while(row-- > 0 && first->prev != NULL)
+    first = first->prev;
+  return first;
+}
+
+// 特殊情况处理：光标所在列为MAX_COL
+// 出现的原因是，当光标指向的这一行与下一行不同段 且 这一行为MAX_COL个字符
+// 此时光标会挤到下一行，但还是指向这一行
+void
+maxcoldown(void)
+{
+  int pos = SCREEN_WIDTH * cur.row + cur.col;
+  ushort c = '\0' | DEFAULT_COLOR;
+
+  // 光标所在行为倒数第二行（底线行的上一行）需要整个屏幕内容下移一行打印
+  if(cur.row == SCREEN_HEIGHT-2){
+    printlines(0, getfirstline()->next);
+    pos -= SCREEN_WIDTH;
+  }
+
+  // 如果有下一行，则光标处显示下一行的字符
+  if(cur.l->next)
+    c = cur.l->next->chs[0];
+  setcurpos(pos, c);
+}
+
+// 将光标设置到屏幕上, 确保row在 [0, SCREEN_HEIGHT - 2]，col在 [0, MAX_COL] 范围内
+// col = MAX_COL时要特殊处理
+void
+showcur(void)
+{
+  int pos, c;
+
+  // 特殊情况
+  if(cur.col == MAX_COL){
+    maxcoldown();
+    return;
+  }
+  
+  // 计算光标的位置 以及 获取该位置的字符
+  pos = SCREEN_WIDTH * cur.row + cur.col;
+  // 此处 col < MAX_COL，数组访问不会越界
+  c = cur.l->chs[cur.col];
+  setcurpos(pos, c);
+}
+
+// 光标下移
+void
+curdown(void)
+{
+  // 已经是文档最后一行，无法下移
+  if(cur.l->next == NULL){
+    // 光标已经在最后一行尾部，无需操作
+    if(cur.col == cur.l->n)
+      return;
+    // 否则移到行尾
+    cur.col = cur.l->n;
+  }
+  else{
+    // 特殊情况时已经在下一行行首
+    if(cur.col == MAX_COL){
+      cur.col = 0;
+      cur.row++;
+      cur.l = cur.l->next;
+    }
+    else{
+      cur.row++;
+      cur.l = cur.l->next;
+      // 下一行的这个位置没有字符，则左移到最后一个字符的位置
+      if(cur.col > cur.l->n)
+        cur.col = cur.l->n;
+    }
+    
+    // 光标移到了底线行，需要整个屏幕内容下移一行打印
+    if(cur.row >= SCREEN_HEIGHT - 1){
+      printlines(0, getfirstline()->next);
+      cur.row--;
+    }
+  }
+  showcur();
+}
+
+// 光标上移
+void
+curup(void)
+{
+  // TODO
+}
+
+// 光标左移
+void
+curleft(void)
+{
+  // TODO
+}
+
+// 光标右移
+void
+curright(void)
+{
+  // TODO
+}
+
+/*                                             */
+/********************光标操作********************/
+
 // 根据传入的字符数组，构造双向链表，每个节点是一行
 line*
 newlines(char *chs, uint n)
@@ -78,28 +197,6 @@ readc(void)
   }
 }
 
-// TODO：这个函数还没有测试过，等支持处理方向键后再测试
-// 获取在光标pos位置上的字符
-char
-getcatpos(int pos)
-{
-  int row, col;
-  line *tmp;
-  // TODO：检查pos的值，防止越界（可能第row行不存在，超出了双向链表范围）
-
-  // pos = row * SCREEN_WIDTH + col
-  row = pos / SCREEN_WIDTH; // 光标在屏幕的第row行
-  col = pos % SCREEN_WIDTH; // 光标在屏幕的第col行
-
-  // 从屏幕第0行开始，找到第row行
-  tmp = tx.show;
-  while(row--){
-    tmp = tmp->next;
-  }
-  // 返回第row行的第col个字符
-  return tmp->chs[col];
-}
-
 void
 wirtetopath(void)
 {
@@ -150,28 +247,19 @@ void
 insert(void)
 {
   uchar c;
-  int pos = getcurpos();
-  int row = pos / SCREEN_WIDTH; // 光标在屏幕的第row行
-  int col = pos % SCREEN_WIDTH; // 光标在屏幕的第col行
-
-  // 从屏幕第0行开始，找到第row行
-  line* tmp = tx.show;
-  int i = row;
-  while(i--){
-    tmp = tmp->next;
-  }
 
   // 循环读取1个字符，如果是ESC则结束
   while((c = readc()) != KEY_ESC){
-    // 在第row行的col列插入字符c
-    insertc(tmp, col, c);
-    // 重新打印该行以及之后的行
-    printlines(row, tmp);
-    // 光标设置到第row行的col+1列的位置，显示该位置的字符
-    setcurpos(pos+1, tmp->chs[col+1]);
-    pos++;
-    row = pos / SCREEN_WIDTH; // 光标在屏幕的第row行
-    col = pos % SCREEN_WIDTH; // 光标在屏幕的第col行
+    // 在光标处插入字符c
+    insertc(cur.l, cur.col, c);
+
+    // 重新打印该行（以及之后的行）
+    if(cur.l->n == MAX_COL && cur.l->paragraph)
+      printlines(cur.row, cur.l);
+    else
+      printline(cur.row, cur.l);
+
+    curright();
   }
 }
 
@@ -182,9 +270,11 @@ editor(void)
   int editflag = 0;
   int pos;
   uchar c;
-  printlines(0, tx.show);
-  // 光标移至左上角（pos=0），并输出该位置的字符
-  setcurpos(0, getcatpos(0));
+
+  // 打印文件的开头 SCREEN_HEIGHT-1 行
+  printlines(0, tx.head);
+  cur.l = tx.head;
+  showcur();
   // 调试代码
   // printf(1, "editor: %s\n", savepath);
   // printf(1, "curpos:%d\n", getcurpos());
@@ -204,26 +294,20 @@ editor(void)
     // 方向键上
     // TODO: 向上、下翻页
     case KEY_UP:
-      pos = getcurpos();
-      pos = (pos / SCREEN_WIDTH - 1) * SCREEN_WIDTH + pos % SCREEN_WIDTH;
-      if (pos >= 0)
-        setcurpos(pos, getcatpos(pos));
+      curup();
       break;
     // 方向键下
     // FIXME: 到底就不再往下
     case KEY_DN:
-      pos = getcurpos();
-      pos = (pos/SCREEN_WIDTH + 1) * SCREEN_WIDTH + pos % SCREEN_WIDTH;
-      setcurpos(pos, getcatpos(pos));
+      curdown();
       break;
     // 方向键左
     case KEY_LF:
-      if (getcurpos() > 0)
-        setcurpos(getcurpos()-1, getcatpos(getcurpos()-1));
+      curleft();
       break;
     // 方向键右
     case KEY_RT:
-      setcurpos(getcurpos()+1, getcatpos(getcurpos()+1));
+      curright();
       break;
 
     // ESC
@@ -285,7 +369,7 @@ readtext(char *path)
 
   tx.path = path;
   // 将文件内容组织成行结构，并用指针进行标记
-  tx.head = tx.tail = tx.show = newlines(chs, nbytes);
+  tx.head = tx.tail = newlines(chs, nbytes);
 
   // 定位尾行
   while(tx.tail->next != NULL){
