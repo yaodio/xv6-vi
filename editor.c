@@ -107,7 +107,7 @@ wirtetopath(void)
 
 // 在指定行的第i个位置插入字符c
 void
-insertc(line *l, int i, char c)
+insertc(line *l, int i, uchar c)
 {
   if(l->n<SCREEN_WIDTH)//if line is not full
   {
@@ -118,12 +118,12 @@ insertc(line *l, int i, char c)
   }
   else
   {
-    char last_char = l->chs[SCREEN_WIDTH-1];//put the last char at the beginning of nest line
+    ushort last_char = l->chs[SCREEN_WIDTH-1];//put the last char at the beginning of nest line
     for(int j=SCREEN_WIDTH-1;j>i;j--)
       l->chs[j] = l->chs[j-1];
-      l->chs[i] = c | DEFAULT_COLOR;
+    l->chs[i] = c | DEFAULT_COLOR;
     if(l->paragraph)
-      insertc(l->next,0,last_char);
+      insertc(l->next,0,last_char&0x00ff);
     else
     {
       l->paragraph = 1;
