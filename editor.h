@@ -23,3 +23,6 @@ typedef struct text {
 #define KEY_ESC       0x1B    // ESC
 
 #define NULL          0       // 空指针
+
+// 全局变量
+static text tx = {NULL, NULL, NULL};  // 文档

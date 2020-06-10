@@ -65,7 +65,7 @@ printlines(line *l, int row)
 
 // 从标准输入（键盘）读入1个字符
 uchar
-readc()
+readc(void)
 {
   static uchar buf[1];
 
@@ -78,7 +78,7 @@ readc()
 // TODO：这个函数还没有测试过，等支持处理方向键后再测试
 // 获取在光标pos位置上的字符
 char
-getcatpos(text *tx, int pos)
+getcatpos(int pos)
 {
   int row, col;
   line *tmp;
@@ -89,7 +89,7 @@ getcatpos(text *tx, int pos)
   col = pos % SCREEN_WIDTH; // 光标在屏幕的第col行
 
   // 从屏幕第0行开始，找到第row行
-  tmp = tx->show;
+  tmp = tx.show;
   while(row--){
     tmp = tmp->next;
   }
@@ -98,7 +98,7 @@ getcatpos(text *tx, int pos)
 }
 
 void
-wirtetopath(text *tx)
+wirtetopath(void)
 {
   // TODO: 输出到tx->path，若路径不存在，则提示输入保存路径，或者直接退出不保存
 }
@@ -141,14 +141,14 @@ insertc(line *l, int i, char c)
 }
 
 void 
-insert(text *tx)
+insert(void)
 {
   int pos = getcurpos();
   int row = pos / SCREEN_WIDTH; // 光标在屏幕的第row行
   int col = pos % SCREEN_WIDTH; // 光标在屏幕的第col行
 
   // 从屏幕第0行开始，找到第row行
-  line* tmp = tx->show;
+  line* tmp = tx.show;
   while(row--){
     tmp = tmp->next;
   }
@@ -168,15 +168,16 @@ insert(text *tx)
     col = pos % SCREEN_WIDTH; // 光标在屏幕的第col行
   }
 }
+
+// 主程序
 void
-editor(text *tx)
+editor(void)
 {
   int editflag = 0;
   uchar c;
-  // TODO: 核心程序
-  printlines(tx->show, 0);
+  printlines(tx.show, 0);
   // 光标移至左上角（pos=0），并输出该位置的字符
-  setcurpos(0, getcatpos(tx, 0));
+  setcurpos(0, getcatpos(0));
   // 调试代码
   // printf(1, "editor: %s\n", savepath);
   // printf(1, "curpos:%d\n", getcurpos());
@@ -188,7 +189,7 @@ editor(text *tx)
     c = readc();
     switch(c){
     case 'i':
-      insert(tx);
+      insert();
       // TODO: 进入编辑模式
       //printf(1,"i!");
       break;
@@ -231,18 +232,17 @@ editor(text *tx)
   }
 
     if(editflag)
-      wirtetopath(tx);
+      wirtetopath();
   }
 
-// 从指定的文件路径中读取所有内容，并组织成行结构（双向链表），并返回一个文本结构体指针text*
-text*
+// 从指定的文件路径中读取所有内容，并组织成行结构（双向链表），出错时返回-1
+int
 readtext(char *path)
 {
   int fd;                 // 文件描述符
   struct stat st;         // 文件信息
   uint nbytes;            // 文件大小（字节数）
   char *chs;              // 文件中的所有字符
-  text *tx;               // 文本结构体
 
   // 路径存在且可被打开
   if(path != NULL && (fd = open(path, O_RDONLY)) >= 0){
@@ -250,14 +250,14 @@ readtext(char *path)
     if(fstat(fd, &st) < 0){
       printf(2, "editor: cannot stat %s\n", path);
       close(fd); // 与open匹配
-      return NULL;
+      return -1;
     }
 
     // 否则检查文件信息，是否为文件（可能是目录）
     if(st.type != T_FILE){
       printf(2, "editor: cannot edit a directory: %s\n", path);
       close(fd); // 与open匹配
-      return NULL;
+      return -1;
     }
 
     // 走到这里说明成功打开了一个文件，读取其中的所有字符
@@ -272,17 +272,16 @@ readtext(char *path)
     chs = NULL;
   }
 
-  tx = (text*)malloc(sizeof(text));
-  tx->path = path;
+  tx.path = path;
   // 将文件内容组织成行结构，并用指针进行标记
-  tx->head = tx->tail = tx->show = newlines(chs, nbytes);
+  tx.head = tx.tail = tx.show = newlines(chs, nbytes);
 
   // 定位尾行
-  while(tx->tail->next != NULL){
-    tx->tail = tx->tail->next;
+  while(tx.tail->next != NULL){
+    tx.tail = tx.tail->next;
   }
 
-  return tx;  
+  return 0;  
 }
 
 // 命令行输入：editor [path]
@@ -290,14 +289,11 @@ readtext(char *path)
 int
 main(int argc, char *argv[])
 {
-  text *tx;               // 文件结构体
   ushort *backup;         // 屏幕字符备份
   int nbytes;             // 屏幕字符备份内容的字节大小
 
-  // 读取文件，并组织成文本结构体
-  tx = readtext(argc > 1 ? argv[1] : NULL);
-  // 读取异常，退出
-  if(tx == NULL){
+  // 读取文件，并组织成文本结构体，读取异常则退出
+  if(readtext(argc > 1 ? argv[1] : NULL) < 0){
     exit();
   }
 
@@ -312,12 +308,12 @@ main(int argc, char *argv[])
   // 清屏，关闭控制台的flag，然后进入编辑器
   cls();
   consflag(0,0);
-  editor(tx);
+  editor();
 
   // 退出编辑器，开启控制台的flag，并还原屏幕上的所有字符
   consflag(1,1);
   rcs(backup, nbytes);
   free(backup);
-  // TODO: free tx.
+  // TODO: free pointers in tx.
   exit();
 }
