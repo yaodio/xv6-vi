@@ -128,7 +128,7 @@ insert(text *tx)
     col+=1;
     cls();
     printlines(tx);
-    setcurpos(pos+1);
+    setcurpos(pos+1, c);
     pos++;
   }
 }
@@ -139,7 +139,8 @@ editor(text *tx)
   uchar c;
   // TODO: 核心程序
   printlines(tx);
-  setcurpos(0);
+  // 光标移至左上角（pos=0），并输出该位置的字符
+  setcurpos(0, getcatpos(tx, 0));
   // 调试代码
   // printf(1, "editor: %s\n", savepath);
   // printf(1, "curpos:%d\n", getcurpos());

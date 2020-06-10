@@ -144,7 +144,7 @@ getcurpos(void)
 
 // 设置光标位置
 void
-setcurpos(int pos)
+setcurpos(int pos, int c)
 {
   // 范围检查
   if(pos < 0)
@@ -156,7 +156,7 @@ setcurpos(int pos)
   outb(CRTPORT+1, pos>>8);
   outb(CRTPORT, 15);
   outb(CRTPORT+1, pos);
-  crt[pos] = ' ' | 0x0700;
+  crt[pos] = (c&0xff) | 0x0700;
 }
 
 // 清屏
@@ -164,7 +164,7 @@ void
 clearscreen(void)
 {
   memset(crt, 0, sizeof(crt[0])*MAX_CHAR);
-  setcurpos(0);
+  setcurpos(0, ' ');
 }
 
 // 备份当前屏幕上的所有字符
@@ -180,7 +180,7 @@ recoverscreen(ushort *backup, int nbytes)
 {
   clearscreen();
   memmove(crt, backup, nbytes);
-  setcurpos(nbytes / sizeof(crt[0])); // crt中的字符为ushort类型，占2字节
+  setcurpos(nbytes / sizeof(crt[0]), ' '); // crt中的字符为ushort类型，占2字节
 }
 
 // 向屏幕输出1个字符
@@ -204,7 +204,7 @@ cgaputc(int c)
     memset(crt+pos, 0, sizeof(crt[0])*(MAX_CHAR - pos));
   }
   
-  setcurpos(pos);
+  setcurpos(pos, ' ');
 }
 
 void
