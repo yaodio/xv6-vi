@@ -3,6 +3,7 @@
 #include "user.h"
 #include "fcntl.h"
 #include "console.h"
+#include "color.h"
 #include "editor.h"
 
 // 根据传入的字符数组，构造双向链表，每个节点是一行
@@ -11,15 +12,14 @@ newlines(char *chs, uint n)
 {
   int i;
   line *l = (line*)malloc(sizeof(line));
+  memset(l->chs, '\0' | DEFAULT_COLOR, MAX_COL);
   l->n = 0;
   l->paragraph = 0;
   l->prev = l->next = NULL;
   
   // 空行
-  if(chs == NULL || n == 0){
-    l->chs[0] = '\0';
+  if(chs == NULL || n == 0)
     return l;
-  }
 
   for(i = 0; i < n; i++){
     // 换行
@@ -29,36 +29,38 @@ newlines(char *chs, uint n)
       break;
     }
     // 写满一行，则下一行与该行同段
-    if(i >= SCREEN_WIDTH){
+    if(i >= MAX_COL){
       l->next = newlines(chs+i, n-i);
       l->next->prev = l;
       l->paragraph = 1;
       break;
     }
     // 填写一行中
-    l->chs[i] = chs[i];
+    l->chs[i] = chs[i] | DEFAULT_COLOR;
     l->n++;
   }
-  l->chs[l->n] = '\0';
   
   return l;
 }
 
+// 在屏幕上第row行打印指定的行
+void
+printline(int row, line *l)
+{
+  int pos, i;
+  
+  pos = row * SCREEN_WIDTH;
+  for(i = 0; i < MAX_COL; i++)
+    putcc(pos+i, l->chs[i]);
+}
+
 // 从屏幕上第 row 行开始打印指定行 l 以及其后面的行，直到屏幕写满
 void
-printlines(line *l, int row)
+printlines(int row, line *l)
 {
-  int nrow = row;
-
   // 保留底线行（最多输出 SCREEN_HEIGHT-1 行）
-  while(l != NULL && nrow < SCREEN_HEIGHT - 1){
-    printf(1, "%s", l->chs);
-    // 如果当前行不满80个字符，且还有下一行，才输出\n
-    // 如果当前行不满80个字符，但没有下一行，不用输出\n
-    // 若当前行已满80个字符，cga会自动换行（pos+1, 见console.c的cgaputc函数)，所以也不用显式输出\n
-    if(l->next != NULL && l->n < SCREEN_WIDTH)
-      printf(1, "\n");
-    nrow++;
+  while(l != NULL && row < SCREEN_HEIGHT - 1){
+    printline(row++, l);
     l = l->next;
   }
 }
@@ -160,7 +162,7 @@ insert(void)
     insertc(tmp, col, c);
     // 重新打印该行以及之后的行（打印前光标先移动到行首）
     setcurpos(row * SCREEN_WIDTH,0);
-    printlines(tmp, row);
+    printlines(row, tmp);
     // 光标设置到第row行的col+1列的位置，显示该位置的字符
     setcurpos(pos+1, tmp->chs[col+1]);
     pos++;
@@ -175,7 +177,7 @@ editor(void)
 {
   int editflag = 0;
   uchar c;
-  printlines(tx.show, 0);
+  printlines(0, tx.show);
   // 光标移至左上角（pos=0），并输出该位置的字符
   setcurpos(0, getcatpos(0));
   // 调试代码
