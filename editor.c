@@ -128,7 +128,8 @@ insert(text *tx)
   while((c = readc()) != KEY_ESC){
     // 在第row行的col列插入字符c
     insertc(tmp, col, c);
-    // 重新打印该行以及之后的行
+    // 重新打印该行以及之后的行（打印前光标先移动到行首）
+    setcurpos(row * SCREEN_WIDTH, 0);
     printlines(tmp, row);
     // 光标设置到第row行的col+1列的位置，显示该位置的字符
     setcurpos(pos+1, tmp->chs[col+1]);
