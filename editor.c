@@ -118,8 +118,8 @@ insert(text *tx)
   }
   // 返回第row行的第col个字符
   while(1){
-    char c = readc();
-    if(c=27) //Exit insert function
+    uchar c = readc();
+    if(c==KEY_ESC) //Exit insert function
       break;
     int line_len = tmp->n;
     for(int i = line_len;i>col;i--)
