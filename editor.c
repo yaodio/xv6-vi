@@ -111,9 +111,9 @@ insertc(line *l, int i, char c)
 {
   if(l->n<SCREEN_WIDTH)//if line is not full
   {
-    for(int j=l->n+1;j>i;j--)
+    for(int j=l->n;j>i;j--)
       l->chs[j] = l->chs[j-1];
-    l->chs[i] = c;
+    l->chs[i] = c | DEFAULT_COLOR;
     l->n++;
   }
   else
@@ -121,23 +121,19 @@ insertc(line *l, int i, char c)
     char last_char = l->chs[SCREEN_WIDTH-1];//put the last char at the beginning of nest line
     for(int j=SCREEN_WIDTH-1;j>i;j--)
       l->chs[j] = l->chs[j-1];
-      l->chs[i] = c;
+      l->chs[i] = c | DEFAULT_COLOR;
     if(l->paragraph)
       insertc(l->next,0,last_char);
     else
     {
-      line *new_l = (line*)malloc(sizeof(line));
-      new_l->n = 1;
-      new_l->paragraph = 0;
-      new_l->chs[0] = last_char;
-      new_l->chs[1] = '\0';
-      
-      line *third_line = l->next;
-      l->next = new_l;
-      new_l->next = third_line;
-      third_line->prev = new_l;
-      new_l->prev = l;
       l->paragraph = 1;
+      char *chs = (char*)malloc(1);
+      chs[0] = c;
+      line *new_l =  newlines(chs,1);
+      new_l->next = l->next;
+      l->next->prev = new_l;
+      l->next = new_l;
+      new_l->prev = l;
     }
   }
 }
