@@ -164,7 +164,7 @@ void
 clearscreen(void)
 {
   memset(crt, 0, sizeof(crt[0])*MAX_CHAR);
-  setcurpos(0, ' ');
+  setcurpos(0, 0);
 }
 
 // 备份当前屏幕上的所有字符
@@ -178,9 +178,10 @@ backupscreen(ushort *backup, int nbytes)
 void
 recoverscreen(ushort *backup, int nbytes)
 {
+  int pos = nbytes / sizeof(crt[0]);
   clearscreen();
   memmove(crt, backup, nbytes);
-  setcurpos(nbytes / sizeof(crt[0]), ' '); // crt中的字符为ushort类型，占2字节
+  setcurpos(pos, crt[pos]); // crt中的字符为ushort类型，占2字节
 }
 
 // 向屏幕输出1个字符
@@ -195,6 +196,7 @@ cgaputc(int c)
   // 退格键 pos退1个
   else if(c == BACKSPACE){
     if(pos > 0) --pos;
+    crt[pos] = ' ';
   } else
     crt[pos++] = (c&0xff) | 0x0700;  // black on white
   
@@ -204,7 +206,7 @@ cgaputc(int c)
     memset(crt+pos, 0, sizeof(crt[0])*(MAX_CHAR - pos));
   }
   
-  setcurpos(pos, ' ');
+  setcurpos(pos, crt[pos]);
 }
 
 void
