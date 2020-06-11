@@ -79,12 +79,14 @@ curdown(void)
     cur.col = cur.l->n;
   }
   else{
-    // 特殊情况时已经在下一行行首
+    // 特殊情况时光标指向当前行行尾，但显示位置在下一行行首
+    // 那么就修改指针指向下一行行首
     if(cur.col == MAX_COL){
       cur.col = 0;
       cur.row++;
       cur.l = cur.l->next;
     }
+    // 光标在当前行中（首）
     else{
       cur.row++;
       cur.l = cur.l->next;
@@ -115,10 +117,11 @@ curup(void)
     cur.col = 0;
   }
   else{
-    // 特殊情况时光标在上一行行尾（MAX_COL处）
+    // 特殊情况时光标指向在当前行行尾（MAX_COL处），但显示位置在下一行行首
+    // 那么移到当前行行首
     if(cur.col == MAX_COL)
       cur.col = 0;
-    
+    // 光标在行中（首）
     else{
       cur.row--;
       cur.l = cur.l->prev;
@@ -140,7 +143,27 @@ curup(void)
 void
 curleft(void)
 {
-  // TODO
+  // 已经在文档首行开头，无法左移
+  if(cur.l->prev == NULL && cur.col == 0)
+    return;
+  
+  // 光标在其他行的开头，则移到上一行尾部
+  if(--cur.col < 0){
+    cur.l = cur.l->prev;
+    cur.row--;
+    cur.col = cur.l->n;
+    // 上一行是满的而且是同一段，cur.col移到最后一个字符处（MAX_COL-1）
+    // 否则如果上一行是满的但不同一段，cur.col留在MAX_COL位置（特殊情况）
+    if(cur.col == MAX_COL && cur.l->paragraph)
+      cur.col--;
+  }
+
+  // 需要屏幕上移一行打印
+  if(cur.row < 0){
+    cur.row = 0;
+    printlines(0, cur.l);
+  }
+  showcur();
 }
 
 // 光标右移
