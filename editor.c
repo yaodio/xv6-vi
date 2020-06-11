@@ -371,6 +371,9 @@ insertmode(void)
   int edit = 0;
   uchar c;
 
+  // 关闭颜色
+  changecolor(UNCOLORED);
+
   // 循环读取1个字符，如果是ESC则结束
   while((c = readc()) != KEY_ESC){
     switch(c){
@@ -405,6 +408,9 @@ insertmode(void)
     }
   }
 
+  // 恢复颜色
+  changecolor(COLORFUL);
+
   return edit;
 }
 
@@ -431,12 +437,14 @@ editor(void)
   while(1){
     c = readc();
     switch(c){
-    case 'i':
-      // 插入模式不显示颜色
-      changecolor(UNCOLORED);
+    // 在光标所在字符后进入插入模式
+    case 'a':
+      curright();
       edit |= insertmode();
-      // 恢复彩色模式
-      changecolor(COLORFUL);
+      break;
+    // 在光标所在字符处进入插入模式
+    case 'i':
+      edit |= insertmode();
       break;
 
     // 方向键上
