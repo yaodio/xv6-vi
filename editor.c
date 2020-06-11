@@ -143,19 +143,26 @@ curup(void)
 void
 curleft(void)
 {
-  // 已经在文档首行开头，无法左移
-  if(cur.l->prev == NULL && cur.col == 0)
-    return;
-  
-  // 光标在其他行的开头，则移到上一行尾部
-  if(--cur.col < 0){
-    cur.l = cur.l->prev;
-    cur.row--;
-    cur.col = cur.l->n;
-    // 上一行是满的而且是同一段，cur.col移到最后一个字符处（MAX_COL-1）
-    // 否则如果上一行是满的但不同一段，cur.col留在MAX_COL位置（特殊情况）
-    if(cur.col == MAX_COL && cur.l->paragraph)
-      cur.col--;
+  cur.col--;
+
+  // 在文档首行
+  if(cur.l->prev == NULL){
+    // 已经开头，无法左移
+    if(cur.col < 0)
+      cur.col = 0;
+  }
+  // 不是文档首行
+  else{
+    // 在开头左边，则移到上一行尾部
+    if(cur.col < 0){
+      cur.row--;
+      cur.l = cur.l->prev;
+      cur.col = cur.l->n;
+      // 上一行是同一段（因此也一定是满的），cur.col移到最后一个字符处（n-1, 同时也是 MAX_COL-1）
+      // 否则如果上一行是满的但不同一段，cur.col留在MAX_COL位置（特殊情况）
+      if(cur.l->paragraph)
+        cur.col--;
+    }
   }
 
   // 需要屏幕上移一行打印
@@ -170,7 +177,53 @@ curleft(void)
 void
 curright(void)
 {
-  // TODO
+  int n = cur.l->n;
+
+  cur.col++;
+
+  // 在文档最后一行
+  if(cur.l->next == NULL){
+    // 已经超过尾部，无法右移
+    if(cur.col > n)
+      cur.col = n;
+  }
+  // 不是文档的最后一行
+  else{
+    // 当前行未满（下一行必然不同段）
+    if(n < MAX_COL){
+      // 可以指向下一行
+      if(cur.col > n){
+        cur.row++;
+        cur.col = 0;
+        cur.l = cur.l->next;
+      }
+    }
+    // 当前行已满
+    else{
+      // col >= n 看下一行是否同段
+      if(cur.col >= n){
+        // 同段 移到下一行
+        if(cur.l->paragraph){
+          cur.row++;
+          cur.col -= n;
+          cur.l = cur.l->next;
+        }
+        // 不同段 且 col>n 移到下一行（col=n则不需要改变，是特殊情况）
+        else if(cur.col > n){
+          cur.row++;
+          cur.col = 0;
+          cur.l = cur.l->next;
+        }
+      }
+    }
+  }
+
+  // 光标移到了底线行，需要整个屏幕内容下移一行打印
+  if(cur.row >= SCREEN_HEIGHT - 1){
+    printlines(0, getfirstline()->next);
+    cur.row = SCREEN_HEIGHT - 2;
+  }
+  showcur();
 }
 
 /*                                             */
