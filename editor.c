@@ -96,7 +96,7 @@ curdown(void)
     // 光标移到了底线行，需要整个屏幕内容下移一行打印
     if(cur.row >= SCREEN_HEIGHT - 1){
       printlines(0, getfirstline()->next);
-      cur.row--;
+      cur.row = SCREEN_HEIGHT - 2;
     }
   }
   showcur();
@@ -106,7 +106,35 @@ curdown(void)
 void
 curup(void)
 {
-  // TODO
+  // 已经是文档首行，无法上移
+  if(cur.l->prev == NULL){
+    // 光标已经在首部，无需操作
+    if(cur.col == 0)
+      return;
+    // 否则移到行首
+    cur.col = 0;
+  }
+  else{
+    // 特殊情况时光标在上一行行尾（MAX_COL处）
+    if(cur.col == MAX_COL){
+      cur.col = 0;
+      cur.l = cur.l->prev;
+    }
+    else{
+      cur.row--;
+      cur.l = cur.l->prev;
+      // 上一行的这个位置没有字符，则左移到最后一个字符的位置
+      if(cur.col > cur.l->n)
+        cur.col = cur.l->n;
+    }
+
+    // 需要屏幕上移一行打印
+    if(cur.row < 0){
+      cur.row = 0;
+      printlines(0, cur.l);
+    }
+  }
+  showcur();
 }
 
 // 光标左移
