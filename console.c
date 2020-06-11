@@ -248,15 +248,16 @@ struct {
 
 #define C(x)  ((x)-'@')  // Control-x
 
-static int showflag = 1; // 为0时不打印到屏幕上
-static int bufflag = 1;  // 为0时不缓存键盘输入，马上读取1个字符
-
+static int showflag = 1;      // 为0时不打印到屏幕上
+static int bufflag = 1;       // 为0时不缓存键盘输入，马上读取1个字符
+static int backspaceflag = 1; // 为0时不拦截退格键
 // 设置bufflag和showflag
 void
-setflag(int sf, int bf)
+setflag(int sf, int bf, int bsf)
 {
   showflag = sf;
   bufflag = bf;
+  backspaceflag = bsf;
 }
 
 // 控制台的键盘输入中断处理函数（见trap.c）
@@ -282,11 +283,13 @@ consoleintr(int (*getc)(void))
       }
       break;
     case C('H'): case '\x7f':  // Backspace ctrl+H等效于退格键
-      if(input.e != input.w){
-        input.e--;
-        consputc(BACKSPACE);
+      if(backspaceflag){
+        if(input.e != input.w){
+          input.e--;
+          consputc(BACKSPACE);
+        }
+        break;
       }
-      break;
     default:
       if(c != 0 && input.e-input.r < INPUT_BUF){
         c = (c == '\r') ? '\n' : c;

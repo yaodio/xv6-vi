@@ -483,14 +483,16 @@ sys_rcs(void)
 int
 sys_consflag(void)
 {
-  int sf, bf;
+  int sf, bf, bsf;
   
   if(argint(0, &sf) < 0)
     return -1;
   if(argint(1, &bf) < 0)
     return -1;
-  
-  setflag(sf, bf);
+  if(argint(2, &bsf) < 0)
+    return -1;
+
+  setflag(sf, bf, bsf);
   return 0;
 }
 

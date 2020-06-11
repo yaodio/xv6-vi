@@ -309,8 +309,74 @@ wirtetopath(void)
   // TODO: 输出到tx->path，若路径不存在，则提示输入保存路径，或者直接退出不保存
 }
 
+// 删除指定行的第i个字符的前一个字符（传参确保i>=0)
+// 删除成功返回1, 失败返回0
+int
+deletec(line *l, int i)
+{
+  int j;
+  // 超过下标n没有字符可以删除（非法情况）
+  if(i > l->n)
+    return 0;
+  
+  if(i == 0){
+    // 文档首行开头，不可删除
+    if(l->prev == NULL)
+      return 0;
+
+    if(cur.l == l)
+      curleft();
+
+    // 与上一行同段，用该行第0个字符替换上一行最后一个字符，然后删除本行第0个字符
+    // 与上一行同段的情况下，当前行的n必然>0
+    if(l->prev->paragraph){
+      l->prev->chs[l->prev->n-1] = l->chs[0];
+      deletec(l, 1);
+    }
+    // 与上一行不同段，则合并为同一段
+    else{
+      l->prev->paragraph = 1;
+      for(j = l->prev->n; j < MAX_COL; j++){
+        // 当前行已经空了，删除该行节点，停止循环
+        if(l->n == 0){
+          l->prev->next = l->next;
+          l->next->prev = l->prev;
+          l->prev->paragraph = 0;
+          free(l);
+          break;
+        }
+        l->prev->chs[j] = l->chs[0];
+        l->prev->n++;
+        deletec(l, 1);
+      }
+    }
+  }
+  // 0 < i <= l->n
+  else{
+    if(cur.l == l)
+      curleft();
+
+    while(i < l->n)
+      l->chs[i-1] = l->chs[i++];
+    
+    // 下一行同段，则把下一行首的字符拿上来，然后递归删除下一行行首字符
+    if(l->paragraph){
+      l->chs[l->n-1] = l->next->chs[0];
+      deletec(l->next, 0);
+    }    
+    // 下一行不同段，则末尾补\0
+    else{
+      l->chs[l->n-1] = '\0';
+      l->n--;
+    }
+  }
+
+  printlines(cur.row, cur.l);
+  return 1;
+}
+
 // 在指定行的第i个位置插入字符c，插入模式使用的是默认颜色，因此不用修改字符的颜色（l->colors数组）
-void
+int
 insertc(line *l, int i, uchar c)
 {
   int j;
@@ -362,6 +428,8 @@ insertc(line *l, int i, uchar c)
     }
     break;
   }
+
+  return 1;
 }
 
 // 插入模式，按ESC退出
@@ -393,11 +461,15 @@ insertmode(void)
     case KEY_RT:
       curright();
       break;
+    
+    // 删除光标处前一个位置的字符
+    case KEY_BACKSPACE:
+      edit |= deletec(cur.l, cur.col);
+      break;
 
     default:
       // 在光标处插入字符c
-      insertc(cur.l, cur.col, c);
-      edit = 1;
+      edit |= insertc(cur.l, cur.col, c);
       // 重新打印该行（以及之后的行）
       if(cur.l->n == MAX_COL && cur.l->paragraph)
         printlines(cur.row, cur.l);
@@ -414,7 +486,7 @@ insertmode(void)
   return edit;
 }
 
-// 主程序
+// 主程序（命令模式）
 void
 editor(void)
 {
@@ -480,9 +552,9 @@ editor(void)
     }
   }
 
-    if(edit)
-      wirtetopath();
-  }
+  if(edit)
+    wirtetopath();
+}
 
 // 从指定的文件路径中读取所有内容，并组织成行结构（双向链表），出错时返回-1
 int
@@ -556,11 +628,11 @@ main(int argc, char *argv[])
 
   // 清屏，关闭控制台的flag，然后进入编辑器
   cls();
-  consflag(0,0);
+  consflag(0, 0, 0);
   editor();
 
   // 退出编辑器，开启控制台的flag，并还原屏幕上的所有字符
-  consflag(1,1);
+  consflag(1, 1, 1);
   rcs(backup, nbytes);
   free(backup);
   // TODO: free pointers in tx.

@@ -28,6 +28,7 @@
 #define KEY_INS         0xE8
 #define KEY_DEL         0xE9
 #define KEY_ESC         0x1B    // ESC
+#define KEY_BACKSPACE   0x08    // BACKSPACE
 
 // C('A') == Control-A
 #define C(x) (x - '@')
