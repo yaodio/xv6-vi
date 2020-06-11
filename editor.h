@@ -25,3 +25,10 @@ static struct cursor {
   int col;                    // 光标所在列
   line *l;                    // 光标指向的行节点
 } cur = {0, 0, NULL};         // 全局光标变量
+
+// 底线模式部分
+enum { NORMAL, QUIT };
+int basehead;               // 底线首行
+#define CMD_MODE        1
+
+int mode = 0;

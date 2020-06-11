@@ -12,6 +12,15 @@ void beautify(void);
 void printline(int row, line *l);
 void printlines(int row, line *l);
 
+char
+compare(char* a, const char* b)
+{
+  int i = 0;
+  while (a[i] != '\0' && b[i] != '\0' && a[i] == b[i])
+    i++;
+  return (a[i] == '\0' && b[i] == '\0');
+}
+
 /********************光标操作********************/
 /*                                             */
 
@@ -150,8 +159,8 @@ curleft(void)
   // 在文档首行
   if(cur.l->prev == NULL){
     // 已经开头，无法左移
-    if(cur.col < 0)
-      cur.col = 0;
+    if(cur.col < 0 || (mode == CMD_MODE && cur.col < 1))
+      cur.col++;
   }
   // 不是文档首行
   else{
@@ -187,7 +196,7 @@ curright(void)
   if(cur.l->next == NULL){
     // 已经超过尾部，无法右移
     if(cur.col > n)
-      cur.col = n;
+      cur.col--;
   }
   // 不是文档的最后一行
   else{
@@ -221,11 +230,20 @@ curright(void)
   }
 
   // 光标移到了底线行，需要整个屏幕内容下移一行打印
-  if(cur.row >= SCREEN_HEIGHT - 1){
+  if(cur.row >= SCREEN_HEIGHT - 1 && mode != CMD_MODE){
     printlines(0, getfirstline()->next);
     cur.row = SCREEN_HEIGHT - 2;
   }
   showcur();
+}
+
+// 移动光标至某处
+void
+curto(int row, int col, line* l) {
+  if (row < SCREEN_HEIGHT && col < SCREEN_WIDTH) {
+    cur.row = row; cur.col = col; cur.l = l;
+    showcur();
+  }
 }
 
 /*                                             */
@@ -304,9 +322,18 @@ readc(void)
 }
 
 void
-wirtetopath(void)
+savefile(void)
 {
-  // TODO: 输出到tx->path，若路径不存在，则提示输入保存路径，或者直接退出不保存
+  if (!(tx.path)) {
+    // TODO: 输入保存路径
+  }
+  else writeto(tx.path, tx.head);
+}
+
+void
+writeto (char* path, line* head)
+{
+  // TODO: 输出到path
 }
 void
 insert_linebreak(line *l)
@@ -442,6 +469,71 @@ insertmode(void)
   return edit;
 }
 
+/**
+ * 底线模式
+ */
+int
+commandline_mode(void)
+{
+  mode = CMD_MODE; // 模式切换
+  int cmdcode = 0;
+  struct cursor cur_old = cur; // 保存光标
+  char colon[] = ":";
+  line* baseline = newlines(colon, 1); // 底线指针
+  basehead = SCREEN_HEIGHT-1; // 底线首行
+  curto(basehead, 1, baseline); // 移动光标
+  printline(basehead, baseline);
+  uchar c;
+  while (1) {
+    c = readc();
+    if (c == '\n') {
+      cmdcode = cmdhandler(baseline);
+      break;
+    }
+    switch (c) {
+    case KEY_UP:
+    case KEY_DN:
+      break; // 禁止上下
+    case KEY_LF: // 方向键左
+      curleft();
+      break;
+    case KEY_RT: // 方向键右
+      curright();
+      break;
+    default:
+      insertc(cur.l, cur.col, c);
+      printline(cur.row, cur.l);
+      curright();
+    }
+  }
+  // 清空底线
+  line* blank = newlines(NULL, 0);
+  printline(SCREEN_HEIGHT-1, blank);
+  // 恢复光标
+  cur = cur_old;
+  showcur();
+  free(baseline);
+  return cmdcode;
+}
+
+int
+cmdhandler(line* cmd)
+{
+  if (compare(cmd->chs, ":q")) {
+    return QUIT;
+  } else if (compare(cmd->chs, ":w")) {
+    savefile();
+  } else if (compare(cmd->chs, ":wq")) {
+    savefile();
+    return QUIT;
+  }
+  // TODO: 添加其他命令
+  else {
+    // ERROR
+    return NORMAL;
+  }
+}
+
 // 主程序
 void
 editor(void)
@@ -497,6 +589,15 @@ editor(void)
       // TODO
       printf(1,"ESC");
       break;
+    case ':':
+      switch(commandline_mode()) {
+        case QUIT:
+          return;
+        default:
+          break;
+      }
+      break;
+
 
     // case 'e' 只是调试用的
     case 'e':
@@ -509,7 +610,7 @@ editor(void)
   }
 
     if(edit)
-      wirtetopath();
+      savefile();
   }
 
 // 从指定的文件路径中读取所有内容，并组织成行结构（双向链表），出错时返回-1
