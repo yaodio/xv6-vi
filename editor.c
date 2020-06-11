@@ -308,7 +308,35 @@ wirtetopath(void)
 {
   // TODO: 输出到tx->path，若路径不存在，则提示输入保存路径，或者直接退出不保存
 }
-
+void
+insert_linebreak(line *l)
+{
+  //如果当前行文本最后一行，则不会执行换行
+  if(cur.row >= SCREEN_HEIGHT-2)
+    return;
+  //如果当前行的下一行属于同一段，则将pos后面的所有字符插入到下一行行首
+  if(l->paragraph)
+  {
+    int char_num = 0;
+    for(int j = l->n-1;j>cur.col;j--)
+    {
+      insertc(l->next,0,l->chs[j]);
+      l->chs[j] = '\0';
+      char_num++;
+    }
+  }//如果下一行属于另一段，则将pos后面的所有字符插入到新一行
+  else
+  {
+    uint cnum = l->n - cur.col;
+    uchar *temp = (uchar*)malloc(cnum);
+    for(int i = 0;i<cnum;i++)
+      temp[i] = l->chs[i+cur.col];
+    line *new_l = newlines(temp,cnum);
+    l->next->prev = new_l;
+    new_l->next = l->next;
+    new_l->prev = l;
+    l->next = new_l;
+  }
 // 在指定行的第i个位置插入字符c，插入模式使用的是默认颜色，因此不用修改字符的颜色（l->colors数组）
 void
 insertc(line *l, int i, uchar c)
@@ -319,7 +347,7 @@ insertc(line *l, int i, uchar c)
 
   switch(c){
   case '\n':
-    // TODO
+    insert_linebreak(l);
     break;
 
   case '\t':
