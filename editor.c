@@ -346,6 +346,7 @@ insertc(line *l, int i, uchar c)
   }
 }
 
+// 插入模式，按ESC退出
 int 
 insertmode(void)
 {
@@ -413,8 +414,6 @@ editor(void)
     switch(c){
     case 'i':
       edit |= insertmode();
-      // TODO: 进入编辑模式
-      //printf(1,"i!");
       break;
 
     // 方向键上
