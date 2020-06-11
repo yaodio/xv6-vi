@@ -353,16 +353,36 @@ insert(void)
 
   // 循环读取1个字符，如果是ESC则结束
   while((c = readc()) != KEY_ESC){
-    // 在光标处插入字符c
-    insertc(cur.l, cur.col, c);
+    switch(c){
+    // 方向键上
+    case KEY_UP:
+      curup();
+      break;
+    // 方向键下
+    case KEY_DN:
+      curdown();
+      break;
+    // 方向键左
+    case KEY_LF:
+      curleft();
+      break;
+    // 方向键右
+    case KEY_RT:
+      curright();
+      break;
 
-    // 重新打印该行（以及之后的行）
-    if(cur.l->n == MAX_COL && cur.l->paragraph)
-      printlines(cur.row, cur.l);
-    else
-      printline(cur.row, cur.l);
+    default:
+      // 在光标处插入字符c
+      insertc(cur.l, cur.col, c);
+      // 重新打印该行（以及之后的行）
+      if(cur.l->n == MAX_COL && cur.l->paragraph)
+        printlines(cur.row, cur.l);
+      else
+        printline(cur.row, cur.l);
+      curright();
+      break;
+    }
 
-    curright();
   }
 }
 
@@ -395,12 +415,10 @@ editor(void)
       break;
 
     // 方向键上
-    // TODO: 向上、下翻页
     case KEY_UP:
       curup();
       break;
     // 方向键下
-    // FIXME: 到底就不再往下
     case KEY_DN:
       curdown();
       break;
