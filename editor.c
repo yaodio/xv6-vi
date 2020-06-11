@@ -351,7 +351,7 @@ insert_linebreak(line *l)
       l->chs[j] = '\0';
       char_num++;
     }
-  }//如果下一行属于另一段，则将pos后面的所有字符插入到新一行
+  }//如果下一行属于另一段，则将pos后面的所有字符插入到新一行.
   else
   {
     uint cnum = l->n - cur.col;
