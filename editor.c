@@ -116,10 +116,9 @@ curup(void)
   }
   else{
     // 特殊情况时光标在上一行行尾（MAX_COL处）
-    if(cur.col == MAX_COL){
+    if(cur.col == MAX_COL)
       cur.col = 0;
-      cur.l = cur.l->prev;
-    }
+    
     else{
       cur.row--;
       cur.l = cur.l->prev;
