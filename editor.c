@@ -315,35 +315,52 @@ insertc(line *l, int i, uchar c)
 {
   int j;
   uchar chs[1];
+  line *newl;
 
-  // 该行未满
-  if(l->n < MAX_COL){
-    for(j = l->n; j > i; j--)
-      l->chs[j] = l->chs[j-1];
-    l->chs[i] = c;
-    l->n++;
-  }
-  // 该行已满
-  else{
-    // 保存该行最后1个字符，放到下一行行首
-    chs[0] = l->chs[MAX_COL-1];
-    
-    for(j = MAX_COL-1; j > i; j--)
-      l->chs[j] = l->chs[j-1];
-    l->chs[i] = c;
+  switch(c){
+  case '\n':
+    // TODO
+    break;
 
-    // 下一行是同一段
-    if(l->paragraph)
-      insertc(l->next, 0, chs[0]);
-    // 下一行不是同一段，插入新行
-    else{
-      l->paragraph = 1;
-      line *newl = newlines(chs, 1);
-      newl->next = l->next;
-      l->next->prev = newl;
-      l->next = newl;
-      newl->prev = l;
+  case '\t':
+    // TODO
+    break;
+  
+  default:
+    // 该行未满（此时i不可能为MAX_COL）
+    if(l->n < MAX_COL){
+      for(j = l->n; j > i; j--)
+        l->chs[j] = l->chs[j-1];
+      l->chs[i] = c;
+      l->n++;
     }
+    // 该行已满（此时i可能为MAX_COL）
+    else{
+      // i不为MAX_COL时，保存该行最后1个字符，放到下一行行首
+      if(i < MAX_COL){
+        chs[0] = l->chs[MAX_COL-1];
+        for(j = MAX_COL-1; j > i; j--)
+          l->chs[j] = l->chs[j-1];
+        l->chs[i] = c;
+      }
+      // 否则c放到下一行行首
+      else
+        chs[0] = c;
+
+      // 下一行是同一段
+      if(l->paragraph)
+        insertc(l->next, 0, chs[0]);
+      // 下一行不是同一段，插入新行
+      else{
+        l->paragraph = 1;
+        newl = newlines(chs, 1);
+        newl->next = l->next;
+        l->next->prev = newl;
+        l->next = newl;
+        newl->prev = l;
+      }
+    }
+    break;
   }
 }
 
