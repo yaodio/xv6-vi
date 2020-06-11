@@ -25,7 +25,3 @@ static struct cursor {
   int col;                    // 光标所在列
   line *l;                    // 光标指向的行节点
 } cur = {0, 0, NULL};         // 全局光标变量
-
-// 颜色模式
-#define UNCOLORED       0     // 黑灰模式（不着色）
-#define COLORFUL        1     // 彩色模式

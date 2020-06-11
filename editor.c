@@ -559,6 +559,7 @@ main(int argc, char *argv[])
   exit();
 }
 
+// 切换颜色模式
 void
 changecolor(int mode)
 {
