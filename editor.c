@@ -346,9 +346,10 @@ insertc(line *l, int i, uchar c)
   }
 }
 
-void 
-insert(void)
+int 
+insertmode(void)
 {
+  int edit = 0;
   uchar c;
 
   // 循环读取1个字符，如果是ESC则结束
@@ -374,6 +375,7 @@ insert(void)
     default:
       // 在光标处插入字符c
       insertc(cur.l, cur.col, c);
+      edit = 1;
       // 重新打印该行（以及之后的行）
       if(cur.l->n == MAX_COL && cur.l->paragraph)
         printlines(cur.row, cur.l);
@@ -382,15 +384,16 @@ insert(void)
       curright();
       break;
     }
-
   }
+
+  return edit;
 }
 
 // 主程序
 void
 editor(void)
 {
-  int editflag = 0;
+  int edit = 0;
   int pos;
   uchar c;
 
@@ -409,7 +412,7 @@ editor(void)
     c = readc();
     switch(c){
     case 'i':
-      insert();
+      edit |= insertmode();
       // TODO: 进入编辑模式
       //printf(1,"i!");
       break;
@@ -447,7 +450,7 @@ editor(void)
     }
   }
 
-    if(editflag)
+    if(edit)
       wirtetopath();
   }
 
