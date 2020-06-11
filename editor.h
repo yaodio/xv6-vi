@@ -4,7 +4,8 @@
 
 // 行结构体（双向链表节点）
 typedef struct line {
-  ushort chs[MAX_COL];        // 一行字符(每个字符2字节，高8位是颜色，低8位是ascii码)
+  uchar chs[MAX_COL];         // 一行字符（每个字符1字节，ascii码）
+  uchar colors[MAX_COL];      // 字符的颜色（每个颜色1字节，高4位是背景色，低4位文本色）
   uint n;                     // 该行的字符数，理论上应该 n <= SCREEN_WIDTH
   struct line *prev;          // 上一行指针
   struct line *next;          // 下一行指针
@@ -24,3 +25,7 @@ static struct cursor {
   int col;                    // 光标所在列
   line *l;                    // 光标指向的行节点
 } cur = {0, 0, NULL};         // 全局光标变量
+
+// 颜色模式
+#define UNCOLORED       0     // 黑灰模式（不着色）
+#define COLORFUL        1     // 彩色模式

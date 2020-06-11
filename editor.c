@@ -7,6 +7,8 @@
 #include "editor.h"
 #include "kbd.h"
 
+void changecolor(int mode);
+void beautify(void);
 void printline(int row, line *l);
 void printlines(int row, line *l);
 
@@ -32,7 +34,7 @@ void
 maxcoldown(void)
 {
   int pos = SCREEN_WIDTH * cur.row + cur.col;
-  ushort c = '\0' | DEFAULT_COLOR;
+  int cc = (DEFAULT_COLOR << 8) | '\0';
 
   // 光标所在行为倒数第二行（底线行的上一行）需要整个屏幕内容下移一行打印
   if(cur.row == SCREEN_HEIGHT-2){
@@ -42,8 +44,8 @@ maxcoldown(void)
 
   // 如果有下一行，则光标处显示下一行的字符
   if(cur.l->next)
-    c = cur.l->next->chs[0];
-  setcurpos(pos, c);
+    cc = (cur.l->next->colors[0] << 8) | cur.l->next->chs[0];
+  setcurpos(pos, cc);
 }
 
 // 将光标设置到屏幕上, 确保row在 [0, SCREEN_HEIGHT - 2]，col在 [0, MAX_COL] 范围内
@@ -51,7 +53,7 @@ maxcoldown(void)
 void
 showcur(void)
 {
-  int pos, c;
+  int pos, cc;
 
   // 特殊情况
   if(cur.col == MAX_COL){
@@ -62,8 +64,8 @@ showcur(void)
   // 计算光标的位置 以及 获取该位置的字符
   pos = SCREEN_WIDTH * cur.row + cur.col;
   // 此处 col < MAX_COL，数组访问不会越界
-  c = cur.l->chs[cur.col];
-  setcurpos(pos, c);
+  cc = (cur.l->colors[cur.col] << 8) | cur.l->chs[cur.col];
+  setcurpos(pos, cc);
 }
 
 // 光标下移
@@ -231,11 +233,12 @@ curright(void)
 
 // 根据传入的字符数组，构造双向链表，每个节点是一行
 line*
-newlines(char *chs, uint n)
+newlines(uchar *chs, uint n)
 {
   int i;
   line *l = (line*)malloc(sizeof(line));
-  memset(l->chs, '\0' | DEFAULT_COLOR, MAX_COL);
+  memset(l->chs, '\0', MAX_COL);
+  memset(l->colors, DEFAULT_COLOR, MAX_COL);
   l->n = 0;
   l->paragraph = 0;
   l->prev = l->next = NULL;
@@ -259,7 +262,7 @@ newlines(char *chs, uint n)
       break;
     }
     // 填写一行中
-    l->chs[i] = chs[i] | DEFAULT_COLOR;
+    l->chs[i] = chs[i];
     l->n++;
   }
   
@@ -274,7 +277,7 @@ printline(int row, line *l)
   
   pos = row * SCREEN_WIDTH;
   for(i = 0; i < MAX_COL; i++)
-    putcc(pos+i, l->chs[i]);
+    putcc(pos+i, (l->colors[i] << 8) | l->chs[i]);
 }
 
 // 从屏幕上第 row 行开始打印指定行 l 以及其后面的行，直到屏幕写满
@@ -306,38 +309,36 @@ wirtetopath(void)
   // TODO: 输出到tx->path，若路径不存在，则提示输入保存路径，或者直接退出不保存
 }
 
-// 在指定行的第i个位置插入字符c
+// 在指定行的第i个位置插入字符c，插入模式使用的是默认颜色，因此不用修改字符的颜色（l->colors数组）
 void
 insertc(line *l, int i, uchar c)
 {
   int j;
-  ushort lastc;
-  char chs[1];
+  uchar chs[1];
 
   // 该行未满
   if(l->n < MAX_COL){
     for(j = l->n; j > i; j--)
       l->chs[j] = l->chs[j-1];
-    l->chs[i] = c | DEFAULT_COLOR;
+    l->chs[i] = c;
     l->n++;
   }
   // 该行已满
   else{
     // 保存该行最后1个字符，放到下一行行首
-    lastc = l->chs[MAX_COL-1];
+    chs[0] = l->chs[MAX_COL-1];
     
     for(j = MAX_COL-1; j > i; j--)
       l->chs[j] = l->chs[j-1];
-    l->chs[i] = c | DEFAULT_COLOR;
+    l->chs[i] = c;
 
     // 下一行是同一段
     if(l->paragraph)
-      insertc(l->next, 0, lastc & 0x00ff);
+      insertc(l->next, 0, chs[0]);
     // 下一行不是同一段，插入新行
     else{
       l->paragraph = 1;
-      chs[0] = lastc;
-      line *newl =  newlines(chs,1);
+      line *newl = newlines(chs, 1);
       newl->next = l->next;
       l->next->prev = newl;
       l->next = newl;
@@ -398,7 +399,8 @@ editor(void)
   int pos;
   uchar c;
 
-  // 打印文件的开头 SCREEN_HEIGHT-1 行
+  // 打开彩色模式并打印文件的开头 SCREEN_HEIGHT-1 行
+  changecolor(COLORFUL);
   printlines(0, tx.head);
   cur.l = tx.head;
   showcur();
@@ -413,7 +415,11 @@ editor(void)
     c = readc();
     switch(c){
     case 'i':
+      // 插入模式不显示颜色
+      changecolor(UNCOLORED);
       edit |= insertmode();
+      // 恢复彩色模式
+      changecolor(COLORFUL);
       break;
 
     // 方向键上
@@ -460,7 +466,7 @@ readtext(char *path)
   int fd;                 // 文件描述符
   struct stat st;         // 文件信息
   uint nbytes;            // 文件大小（字节数）
-  char *chs;              // 文件中的所有字符
+  uchar *chs;             // 文件中的所有字符
 
   // 路径存在且可被打开
   if(path != NULL && (fd = open(path, O_RDONLY)) >= 0){
@@ -480,7 +486,7 @@ readtext(char *path)
 
     // 走到这里说明成功打开了一个文件，读取其中的所有字符
     nbytes = st.size;
-    chs = (char*) malloc(nbytes);
+    chs = (uchar*)malloc(nbytes);
     read(fd, chs, nbytes);
     close(fd); // 与open匹配
   }
@@ -534,4 +540,34 @@ main(int argc, char *argv[])
   free(backup);
   // TODO: free pointers in tx.
   exit();
+}
+
+void
+changecolor(int mode)
+{
+  line *tmp;
+
+  switch(mode){
+  case COLORFUL:
+    // 彩色模式根据文件类型来着色
+    beautify();
+    break;
+
+  case UNCOLORED:
+  default:
+    // 使用默认颜色
+    tmp = tx.head;
+    while(tmp){
+      memset(tmp->colors, DEFAULT_COLOR, MAX_COL);
+      tmp = tmp->next;
+    }
+    break;
+  }
+}
+
+// 根据文件类型来着色
+void
+beautify(void)
+{
+  // TODO
 }
