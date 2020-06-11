@@ -364,6 +364,46 @@ insert_linebreak(line *l)
     new_l->prev = l;
     l->next = new_l;
   }
+}
+void 
+insert_tab(line *l)
+{
+  int tab_length = 4;
+  //该行未满直接插入
+  if(l->n+tab_length<=SCREEN_WIDTH)
+  {
+    for(int i = 0;i<tab_length;i++)
+      insertc(l,cur.col,' ');
+    cur.col+=3;
+  }
+  else //该行已满
+  {
+    //如果是最后一行的不会插入tab
+    if(cur.row >= SCREEN_HEIGHT-2)
+      return;
+    else
+    {
+      if(SCREEN_WIDTH - cur.col < tab_length)//如果光标位置到行尾的距离不足以存放一个tab,tab将会放到下一行
+      {
+        int lo = l->n-1;
+        for(int j = SCREEN_WIDTH - cur.col;j>0;j--)
+        {
+          insertc(l->next,0,l->chs[lo]);
+          l->chs[lo] = '\0';
+          lo--;
+        }
+        for(int i = 0;i<tab_length;i++)
+          insertc(l->next,0,' ');
+      }
+      else
+      {
+        for(int i = 0;i<tab_length;i++)
+          insertc(l,cur.col,' ');
+        cur.col+=3;
+      }  
+    } 
+  }
+}
 // 在指定行的第i个位置插入字符c，插入模式使用的是默认颜色，因此不用修改字符的颜色（l->colors数组）
 void
 insertc(line *l, int i, uchar c)
@@ -378,7 +418,7 @@ insertc(line *l, int i, uchar c)
     break;
 
   case '\t':
-    // TODO
+    insert_tab(l);
     break;
   
   default:
