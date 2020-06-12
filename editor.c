@@ -68,15 +68,15 @@ showcur(void)
   setcurpos(pos, cc);
 }
 
-// 光标下移
-void
+// 光标下移, 无法移动则返回0
+int
 curdown(void)
 {
   // 已经是文档最后一行，无法下移
   if(cur.l->next == NULL){
     // 光标已经在最后一行尾部，无需操作
     if(cur.col == cur.l->n)
-      return;
+      return 0;
     // 否则移到行尾
     cur.col = cur.l->n;
   }
@@ -104,17 +104,18 @@ curdown(void)
     }
   }
   showcur();
+  return 1;
 }
 
-// 光标上移
-void
+// 光标上移, 无法移动则返回0
+int
 curup(void)
 {
   // 已经是文档首行，无法上移
   if(cur.l->prev == NULL){
     // 光标已经在首部，无需操作
     if(cur.col == 0)
-      return;
+      return 0;
     // 否则移到行首
     cur.col = 0;
   }
@@ -139,10 +140,11 @@ curup(void)
     }
   }
   showcur();
+  return 1;
 }
 
-// 光标左移
-void
+// 光标左移, 无法移动则返回0
+int
 curleft(void)
 {
   cur.col--;
@@ -150,8 +152,10 @@ curleft(void)
   // 在文档首行
   if(cur.l->prev == NULL){
     // 已经开头，无法左移
-    if(cur.col < 0)
+    if(cur.col < 0){
       cur.col = 0;
+      return 0;
+    }
   }
   // 不是文档首行
   else{
@@ -173,10 +177,11 @@ curleft(void)
     printlines(0, cur.l);
   }
   showcur();
+  return 1;
 }
 
-// 光标右移
-void
+// 光标右移, 无法移动则返回0
+int
 curright(void)
 {
   int n = cur.l->n;
@@ -186,8 +191,10 @@ curright(void)
   // 在文档最后一行
   if(cur.l->next == NULL){
     // 已经超过尾部，无法右移
-    if(cur.col > n)
+    if(cur.col > n){
       cur.col = n;
+      return 0;
+    }
   }
   // 不是文档的最后一行
   else{
@@ -226,6 +233,7 @@ curright(void)
     cur.row = SCREEN_HEIGHT - 2;
   }
   showcur();
+  return 1;
 }
 
 /*                                             */
@@ -319,14 +327,14 @@ deletec(line *l, int i)
   if(i > l->n)
     return 0;
   
+  // 文档首行开头，不可删除
+  if(i == 0 && l->prev == NULL)
+    return 0;
+
+  if(cur.l == l)
+    curleft();
+
   if(i == 0){
-    // 文档首行开头，不可删除
-    if(l->prev == NULL)
-      return 0;
-
-    if(cur.l == l)
-      curleft();
-
     // 与上一行同段，用该行第0个字符替换上一行最后一个字符，然后删除本行第0个字符
     // 与上一行同段的情况下，当前行的n必然>0
     if(l->prev->paragraph){
