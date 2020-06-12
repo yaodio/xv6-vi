@@ -11,6 +11,7 @@ void changecolor(int mode);
 void beautify(void);
 void printline(int row, line *l);
 void printlines(int row, line *l);
+int insertc(line *l, int i, uchar c);
 
 char
 compare(char* a, const char* b)
@@ -46,7 +47,7 @@ maxcoldown(void)
   int cc = (DEFAULT_COLOR << 8) | '\0';
 
   // 光标所在行为倒数第二行（底线行的上一行）需要整个屏幕内容下移一行打印
-  if(cur.row == SCREEN_HEIGHT-2){
+  if(cur.row == BASE_ROW-1){
     printlines(0, getfirstline()->next);
     pos -= SCREEN_WIDTH;
   }
@@ -107,9 +108,9 @@ curdown(void)
     }
     
     // 光标移到了底线行，需要整个屏幕内容下移一行打印
-    if(cur.row >= SCREEN_HEIGHT - 1){
+    if(cur.row >= BASE_ROW){
       printlines(0, getfirstline()->next);
-      cur.row = SCREEN_HEIGHT - 2;
+      cur.row = BASE_ROW - 1;
     }
   }
   showcur();
@@ -158,10 +159,16 @@ curleft(void)
 {
   cur.col--;
 
+  // 底线模式第0列为':'
+  if(cur.row == BASE_ROW && cur.col < 1) {
+    cur.col = 1;
+    return 0;
+  }
+
   // 在文档首行
   if(cur.l->prev == NULL){
     // 已经开头，无法左移
-    if(cur.col < 0 || (mode == CMD_MODE && cur.col < 1)){
+    if(cur.col < 0){
       cur.col++;
       return 0;
     }
@@ -196,6 +203,16 @@ curright(void)
   int n = cur.l->n;
 
   cur.col++;
+
+  // 底线模式
+  if(cur.row == BASE_ROW){
+    if(cur.col > n || cur.col == MAX_COL){
+      cur.col--;
+      return 0;
+    }
+    showcur();
+    return 1;
+  }
 
   // 在文档最后一行
   if(cur.l->next == NULL){
@@ -237,9 +254,9 @@ curright(void)
   }
 
   // 光标移到了底线行，需要整个屏幕内容下移一行打印
-  if(cur.row >= SCREEN_HEIGHT - 1 && mode != CMD_MODE){
+  if(cur.row >= BASE_ROW){
     printlines(0, getfirstline()->next);
-    cur.row = SCREEN_HEIGHT - 2;
+    cur.row = BASE_ROW - 1;
   }
   showcur();
   return 1;
@@ -248,10 +265,17 @@ curright(void)
 // 移动光标至某处
 void
 curto(int row, int col, line* l) {
-  if (row < SCREEN_HEIGHT && col < SCREEN_WIDTH) {
-    cur.row = row; cur.col = col; cur.l = l;
-    showcur();
+  if(col < 0 || col > MAX_COL){
+    // TODO: error cur pos
   }
+  if(row < 0 || row > BASE_ROW){
+    // TODO: error cur pos
+  }
+  if(row == BASE_ROW && col == MAX_COL){
+    // TODO: error cur pos
+  }
+  cur.row = row; cur.col = col; cur.l = l;
+  showcur();
 }
 
 /*                                             */
@@ -311,7 +335,7 @@ void
 printlines(int row, line *l)
 {
   // 保留底线行（最多输出 SCREEN_HEIGHT-1 行）
-  while(l != NULL && row < SCREEN_HEIGHT - 1){
+  while(l != NULL && row < BASE_ROW){
     printline(row++, l);
     l = l->next;
   }
@@ -623,35 +647,35 @@ insertmode(void)
   return edit;
 }
 
-/**
- * 底线模式
- */
+
+// 底线模式
 int
-commandline_mode(void)
+baselinemode(void)
 {
-  mode = CMD_MODE; // 模式切换
   int cmdcode = 0;
-  struct cursor cur_old = cur; // 保存光标
-  char colon[] = ":";
+  cursor oldcur = cur; // 保存光标
+  uchar colon[] = ":";
   line* baseline = newlines(colon, 1); // 底线指针
-  basehead = SCREEN_HEIGHT-1; // 底线首行
-  curto(basehead, 1, baseline); // 移动光标
-  printline(basehead, baseline);
+  curto(BASE_ROW, 1, baseline);
+  printline(BASE_ROW, baseline);
+  
   uchar c;
-  while (1) {
-    c = readc();
+  // 循环读取1个字符，如果是ESC则结束
+  while((c = readc()) != KEY_ESC){
     if (c == '\n') {
       cmdcode = cmdhandler(baseline);
       break;
     }
+
     switch (c) {
+    // 方向键左和上，光标左移
+    case KEY_LF: 
     case KEY_UP:
-    case KEY_DN:
-      break; // 禁止上下
-    case KEY_LF: // 方向键左
       curleft();
       break;
-    case KEY_RT: // 方向键右
+    // 方向键右和下，光标右移
+    case KEY_RT:
+    case KEY_DN:
       curright();
       break;
     default:
@@ -662,11 +686,12 @@ commandline_mode(void)
   }
   // 清空底线
   line* blank = newlines(NULL, 0);
-  printline(SCREEN_HEIGHT-1, blank);
+  printline(BASE_ROW, blank);
   // 恢复光标
-  cur = cur_old;
+  cur = oldcur;
   showcur();
   free(baseline);
+  free(blank);
   return cmdcode;
 }
 
@@ -699,13 +724,7 @@ editor(void)
   // 打开彩色模式并打印文件的开头 SCREEN_HEIGHT-1 行
   changecolor(COLORFUL);
   printlines(0, tx.head);
-  cur.l = tx.head;
-  showcur();
-  // 调试代码
-  // printf(1, "editor: %s\n", savepath);
-  // printf(1, "curpos:%d\n", getcurpos());
-  // sleep(500);
-  // 调试结束
+  curto(0, 0, tx.head);
 
   // 不断读取1个字符进行处理
   while(1){
@@ -738,20 +757,14 @@ editor(void)
       curright();
       break;
 
-    // ESC
-    case KEY_ESC:
-      // TODO
-      printf(1,"ESC");
-      break;
     case ':':
-      switch(commandline_mode()) {
+      switch(baselinemode()) {
         case QUIT:
           return;
         default:
           break;
       }
       break;
-
 
     // case 'e' 只是调试用的
     case 'e':

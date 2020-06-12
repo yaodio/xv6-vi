@@ -1,6 +1,7 @@
 #define NULL          0       // 空指针
 
-#define MAX_COL SCREEN_WIDTH  // 每行最大字符数设为屏幕宽度
+#define MAX_COL       SCREEN_WIDTH        // 每行最大字符数设为屏幕宽度
+#define BASE_ROW      SCREEN_HEIGHT-1     // 底线行的行号
 
 // 行结构体（双向链表节点）
 typedef struct line {
@@ -20,15 +21,14 @@ static struct text {
 } tx = {NULL,NULL,NULL,NULL}; // 全局文档变量
 
 // 光标结构体
-static struct cursor {
+typedef struct cursor {
   int row;                    // 光标所在行
   int col;                    // 光标所在列
   line *l;                    // 光标指向的行节点
-} cur = {0, 0, NULL};         // 全局光标变量
+} cursor;         
+
+// 全局光标变量
+static cursor cur = {0, 0, NULL};
 
 // 底线模式部分
 enum { NORMAL, QUIT };
-int basehead;               // 底线首行
-#define CMD_MODE        1
-
-int mode = 0;
