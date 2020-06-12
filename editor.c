@@ -328,8 +328,12 @@ deletec(line *l, int i)
   // 此时 i <= l->n
 
   if(l->paragraph == 0){
-    // 删除的是空行（必然有下一行）
+    // 删除的是空行
     if(l->n == 0){
+      // 文档唯一的1行，此时文档内容为空，无法删除
+      if(l->prev == NULL && l->next == NULL)
+        return 0;
+
       // 删除的是文档第一行
       if(l->prev == NULL)
         tx.head = l->next;
@@ -356,10 +360,20 @@ deletec(line *l, int i)
       return 1;
     }
     // 此时 0 < i == l->n
+
+    // 文档最后一个字符之后，无法删除
+    if(l->next == NULL)
+      return 0;
     
     if(l->n == MAX_COL){
-      l->paragraph = 1;
-      if(cur.l == l){
+      // 下一行是空行，删掉
+      if(l->next->n == 0)
+        deletec(l->next, 0);
+      // 否则下一行变为同一段
+      else
+        l->paragraph = 1;
+
+      if(cur.l == l && l->next != NULL){
         cur.l = l->next;
         cur.col = 0;
         cur.row++;
@@ -373,9 +387,8 @@ deletec(line *l, int i)
       deletec(l->next, 0);
     }
     // 下一行被榨干了（变成空行），删掉
-    if(l->next->n == 0) {
+    if(l->next->n == 0)
       deletec(l->next, 0);
-    }
     // 否则下一行变为同一段
     else
       l->paragraph = 1;
@@ -490,6 +503,10 @@ insertmode(void)
         edit |= deletec(cur.l, cur.col);
         printlines(cur.row, cur.l);
       }
+      break;
+    case KEY_DEL:
+      edit |= deletec(cur.l, cur.col);
+      printlines(cur.row, cur.l);
       break;
 
     default:
