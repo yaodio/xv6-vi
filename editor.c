@@ -317,69 +317,83 @@ wirtetopath(void)
   // TODO: 输出到tx->path，若路径不存在，则提示输入保存路径，或者直接退出不保存
 }
 
-// 删除指定行的第i个字符的前一个字符（传参确保i>=0)
+// 删除指定行的第i个字符
 // 删除成功返回1, 失败返回0
 int
 deletec(line *l, int i)
 {
-  int j;
   // 超过下标n没有字符可以删除（非法情况）
   if(i > l->n)
     return 0;
-  
-  // 文档首行开头，不可删除
-  if(i == 0 && l->prev == NULL)
-    return 0;
+  // 此时 i <= l->n
 
-  if(cur.l == l)
-    curleft();
+  if(l->paragraph == 0){
+    // 删除的是空行（必然有下一行）
+    if(l->n == 0){
+      // 删除的是文档第一行
+      if(l->prev == NULL)
+        tx.head = l->next;
+      else
+        l->prev->next = l->next;
+      l->next->prev = l->prev;
 
-  if(i == 0){
-    // 与上一行同段，用该行第0个字符替换上一行最后一个字符，然后删除本行第0个字符
-    // 与上一行同段的情况下，当前行的n必然>0
-    if(l->prev->paragraph){
-      l->prev->chs[l->prev->n-1] = l->chs[0];
-      deletec(l, 1);
-    }
-    // 与上一行不同段，则合并为同一段
-    else{
-      l->prev->paragraph = 1;
-      for(j = l->prev->n; j < MAX_COL; j++){
-        // 当前行已经空了，删除该行节点，停止循环
-        if(l->n == 0){
-          l->prev->next = l->next;
-          l->next->prev = l->prev;
-          l->prev->paragraph = 0;
-          free(l);
-          break;
-        }
-        l->prev->chs[j] = l->chs[0];
-        l->prev->n++;
-        deletec(l, 1);
+      // 删除的是光标指向的行
+      if(cur.l == l){
+        cur.l = l->next;
+        cur.col = 0;
       }
+      free(l);
+      return 1;
     }
-  }
-  // 0 < i <= l->n
-  else{
-    if(cur.l == l)
-      curleft();
+    // 此时 i <= l->n 且 0 < l->n
 
-    while(i < l->n)
-      l->chs[i-1] = l->chs[i++];
-    
-    // 下一行同段，则把下一行首的字符拿上来，然后递归删除下一行行首字符
-    if(l->paragraph){
-      l->chs[l->n-1] = l->next->chs[0];
-      deletec(l->next, 0);
-    }    
-    // 下一行不同段，则末尾补\0
-    else{
-      l->chs[l->n-1] = '\0';
+    // 不涉及下一行的字符移动
+    if(i < l->n){
+      while(++i < l->n)
+        l->chs[i-1] = l->chs[i];
+      l->chs[i-1] = '\0';
       l->n--;
+      return 1;
+    }
+    // 此时 0 < i == l->n
+    
+    if(l->n == MAX_COL){
+      l->paragraph = 1;
+      if(cur.l == l){
+        cur.l = l->next;
+        cur.col = 0;
+        cur.row++;
+      }
+      return 1;
+    }
+    // 此时 0 < i == l->n < MAX_COL(80), 即该行还有空位
+    // 把下一行部分字符挪上来
+    while(l->n < MAX_COL && l->next->n > 0){
+      l->chs[l->n++] = l->next->chs[0];
+      deletec(l->next, 0);
+    }
+    // 下一行被榨干了（变成空行），删掉
+    if(l->next->n == 0) {
+      deletec(l->next, 0);
+    }
+    // 否则下一行变为同一段
+    else
+      l->paragraph = 1;
+  }
+  else{
+    // 同段时光标col（传入的i）不会等于MAX_COL
+    // 此时 i < l->n == MAX_COL
+    while(++i < l->n)
+      l->chs[i-1] = l->chs[i];
+    l->chs[i-1] = l->next->chs[0];
+    deletec(l->next, 0);
+    // 下一行被榨干了（变成空行），删掉
+    if(l->next->n == 0) {
+      deletec(l->next, 0);
+      l->paragraph = 0;
     }
   }
 
-  printlines(cur.row, cur.l);
   return 1;
 }
 
@@ -472,7 +486,10 @@ insertmode(void)
     
     // 删除光标处前一个位置的字符
     case KEY_BACKSPACE:
-      edit |= deletec(cur.l, cur.col);
+      if(curleft()){
+        edit |= deletec(cur.l, cur.col);
+        printlines(cur.row, cur.l);
+      }
       break;
 
     default:
