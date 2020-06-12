@@ -58,7 +58,7 @@ maxcoldown(void)
   setcurpos(pos, cc);
 }
 
-// 将光标设置到屏幕上, 确保row在 [0, SCREEN_HEIGHT - 2]，col在 [0, MAX_COL] 范围内
+// 将光标设置到屏幕上, 确保row在 [0, BASE_ROW]，col在 [0, MAX_COL] 范围内
 // col = MAX_COL时要特殊处理
 void
 showcur(void)
@@ -460,35 +460,56 @@ writeto (char* path, line* head)
 {
   // TODO: 输出到path
 }
+
+// 在指定行的第i个字符处换行
 void
-insert_linebreak(line *l)
+breakline(line *l, int i)
 {
-  //如果当前行文本最后一行，则不会执行换行
-  if(cur.row >= SCREEN_HEIGHT-2)
-    return;
-  //如果当前行的下一行属于同一段，则将pos后面的所有字符插入到下一行行首
-  if(l->paragraph)
-  {
-    int char_num = 0;
-    for(int j = l->n-1;j>cur.col;j--)
-    {
-      insertc(l->next,0,l->chs[j]);
-      l->chs[j] = '\0';
-      char_num++;
+  int j;
+  line *newl;
+
+  // 当前行的下一行属于同一段
+  if(l->paragraph){
+    // 可能与上一段同行，去掉段落标记即可
+    if(i == 0 && l->prev != NULL && l->prev->paragraph)
+      l->prev->paragraph = 0;
+    else{
+      // 将i以及后面的所有字符插入到下一行行首
+      for(j = l->n-1; j>=i; j--){
+        insertc(l->next, 0, l->chs[j]);
+        l->chs[j] = '\0';
+        l->n--;
+      }
+      l->paragraph = 0;
+      cur.row++;
+      cur.col = 0;
+      cur.l = l->next;
     }
-  }//如果下一行属于另一段，则将pos后面的所有字符插入到新一行.
-  else
-  {
-    uint cnum = l->n - cur.col;
-    uchar *temp = (uchar*)malloc(cnum);
-    for(int i = 0;i<cnum;i++)
-      temp[i] = l->chs[i+cur.col];
-    line *new_l = newlines(temp,cnum);
-    l->next->prev = new_l;
-    new_l->next = l->next;
-    new_l->prev = l;
-    l->next = new_l;
   }
+  //如果下一行属于另一段，则将i以及后面的所有字符插入到新一行.
+  else{
+    newl = newlines(l->chs+i, l->n-i);
+    memset(l->chs+i, '\0', l->n-i);
+    l->n = i;
+    if(l->next != NULL){
+      l->next->prev = newl;
+      newl->next = l->next;
+    }
+    newl->prev = l;
+    l->next = newl;
+    
+    cur.row++;
+    cur.col = 0;
+    cur.l = l->next;
+  }
+  
+  // 光标移到了底线行，需要整个屏幕内容下移一行打印
+  if(cur.row >= BASE_ROW){
+    printlines(0, getfirstline()->next);
+    cur.row = BASE_ROW - 1;
+  }else
+    printlines(cur.row-1, cur.l->prev);
+  showcur();
 }
 void 
 insert_tab(line *l)
@@ -538,10 +559,6 @@ insertc(line *l, int i, uchar c)
   line *newl;
 
   switch(c){
-  case '\n':
-    insert_linebreak(l);
-    break;
-
   case '\t':
     insert_tab(l);
     break;
@@ -626,6 +643,10 @@ insertmode(void)
     case KEY_DEL:
       edit |= deletec(cur.l, cur.col);
       printlines(cur.row, cur.l);
+      break;
+
+    case '\n':
+      breakline(cur.l, cur.col);
       break;
 
     default:
