@@ -12,6 +12,15 @@ void beautify(void);
 void printline(int row, line *l);
 void printlines(int row, line *l);
 
+char
+compare(char* a, const char* b)
+{
+  int i = 0;
+  while (a[i] != '\0' && b[i] != '\0' && a[i] == b[i])
+    i++;
+  return (a[i] == '\0' && b[i] == '\0');
+}
+
 /********************光标操作********************/
 /*                                             */
 
@@ -152,8 +161,8 @@ curleft(void)
   // 在文档首行
   if(cur.l->prev == NULL){
     // 已经开头，无法左移
-    if(cur.col < 0){
-      cur.col = 0;
+    if(cur.col < 0 || (mode == CMD_MODE && cur.col < 1)){
+      cur.col++;
       return 0;
     }
   }
@@ -228,12 +237,21 @@ curright(void)
   }
 
   // 光标移到了底线行，需要整个屏幕内容下移一行打印
-  if(cur.row >= SCREEN_HEIGHT - 1){
+  if(cur.row >= SCREEN_HEIGHT - 1 && mode != CMD_MODE){
     printlines(0, getfirstline()->next);
     cur.row = SCREEN_HEIGHT - 2;
   }
   showcur();
   return 1;
+}
+
+// 移动光标至某处
+void
+curto(int row, int col, line* l) {
+  if (row < SCREEN_HEIGHT && col < SCREEN_WIDTH) {
+    cur.row = row; cur.col = col; cur.l = l;
+    showcur();
+  }
 }
 
 /*                                             */
@@ -312,9 +330,12 @@ readc(void)
 }
 
 void
-wirtetopath(void)
+savefile(void)
 {
-  // TODO: 输出到tx->path，若路径不存在，则提示输入保存路径，或者直接退出不保存
+  if (!(tx.path)) {
+    // TODO: 输入保存路径
+  }
+  else writeto(tx.path, tx.head);
 }
 
 // 删除指定行的第i个字符
@@ -410,6 +431,80 @@ deletec(line *l, int i)
   return 1;
 }
 
+void
+writeto (char* path, line* head)
+{
+  // TODO: 输出到path
+}
+void
+insert_linebreak(line *l)
+{
+  //如果当前行文本最后一行，则不会执行换行
+  if(cur.row >= SCREEN_HEIGHT-2)
+    return;
+  //如果当前行的下一行属于同一段，则将pos后面的所有字符插入到下一行行首
+  if(l->paragraph)
+  {
+    int char_num = 0;
+    for(int j = l->n-1;j>cur.col;j--)
+    {
+      insertc(l->next,0,l->chs[j]);
+      l->chs[j] = '\0';
+      char_num++;
+    }
+  }//如果下一行属于另一段，则将pos后面的所有字符插入到新一行.
+  else
+  {
+    uint cnum = l->n - cur.col;
+    uchar *temp = (uchar*)malloc(cnum);
+    for(int i = 0;i<cnum;i++)
+      temp[i] = l->chs[i+cur.col];
+    line *new_l = newlines(temp,cnum);
+    l->next->prev = new_l;
+    new_l->next = l->next;
+    new_l->prev = l;
+    l->next = new_l;
+  }
+}
+void 
+insert_tab(line *l)
+{
+  int tab_length = 4;
+  //该行未满直接插入
+  if(l->n+tab_length<=SCREEN_WIDTH)
+  {
+    for(int i = 0;i<tab_length;i++)
+      insertc(l,cur.col,' ');
+    cur.col+=3;
+  }
+  else //该行已满
+  {
+    //如果是最后一行的不会插入tab
+    if(cur.row >= SCREEN_HEIGHT-2)
+      return;
+    else
+    {
+      if(SCREEN_WIDTH - cur.col < tab_length)//如果光标位置到行尾的距离不足以存放一个tab,tab将会放到下一行
+      {
+        int lo = l->n-1;
+        for(int j = SCREEN_WIDTH - cur.col;j>0;j--)
+        {
+          insertc(l->next,0,l->chs[lo]);
+          l->chs[lo] = '\0';
+          lo--;
+        }
+        for(int i = 0;i<tab_length;i++)
+          insertc(l->next,0,' ');
+      }
+      else
+      {
+        for(int i = 0;i<tab_length;i++)
+          insertc(l,cur.col,' ');
+        cur.col+=3;
+      }  
+    } 
+  }
+}
 // 在指定行的第i个位置插入字符c，插入模式使用的是默认颜色，因此不用修改字符的颜色（l->colors数组）
 int
 insertc(line *l, int i, uchar c)
@@ -420,11 +515,11 @@ insertc(line *l, int i, uchar c)
 
   switch(c){
   case '\n':
-    // TODO
+    insert_linebreak(l);
     break;
 
   case '\t':
-    // TODO
+    insert_tab(l);
     break;
   
   default:
@@ -528,6 +623,71 @@ insertmode(void)
   return edit;
 }
 
+/**
+ * 底线模式
+ */
+int
+commandline_mode(void)
+{
+  mode = CMD_MODE; // 模式切换
+  int cmdcode = 0;
+  struct cursor cur_old = cur; // 保存光标
+  char colon[] = ":";
+  line* baseline = newlines(colon, 1); // 底线指针
+  basehead = SCREEN_HEIGHT-1; // 底线首行
+  curto(basehead, 1, baseline); // 移动光标
+  printline(basehead, baseline);
+  uchar c;
+  while (1) {
+    c = readc();
+    if (c == '\n') {
+      cmdcode = cmdhandler(baseline);
+      break;
+    }
+    switch (c) {
+    case KEY_UP:
+    case KEY_DN:
+      break; // 禁止上下
+    case KEY_LF: // 方向键左
+      curleft();
+      break;
+    case KEY_RT: // 方向键右
+      curright();
+      break;
+    default:
+      insertc(cur.l, cur.col, c);
+      printline(cur.row, cur.l);
+      curright();
+    }
+  }
+  // 清空底线
+  line* blank = newlines(NULL, 0);
+  printline(SCREEN_HEIGHT-1, blank);
+  // 恢复光标
+  cur = cur_old;
+  showcur();
+  free(baseline);
+  return cmdcode;
+}
+
+int
+cmdhandler(line* cmd)
+{
+  if (compare(cmd->chs, ":q")) {
+    return QUIT;
+  } else if (compare(cmd->chs, ":w")) {
+    savefile();
+  } else if (compare(cmd->chs, ":wq")) {
+    savefile();
+    return QUIT;
+  }
+  // TODO: 添加其他命令
+  else {
+    // ERROR
+    return NORMAL;
+  }
+}
+
 // 主程序（命令模式）
 void
 editor(void)
@@ -583,6 +743,15 @@ editor(void)
       // TODO
       printf(1,"ESC");
       break;
+    case ':':
+      switch(commandline_mode()) {
+        case QUIT:
+          return;
+        default:
+          break;
+      }
+      break;
+
 
     // case 'e' 只是调试用的
     case 'e':
@@ -595,7 +764,7 @@ editor(void)
   }
 
   if(edit)
-    wirtetopath();
+    savefile();
 }
 
 // 从指定的文件路径中读取所有内容，并组织成行结构（双向链表），出错时返回-1
