@@ -146,6 +146,9 @@ _forktest: forktest.o $(ULIB)
 	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o _forktest forktest.o ulib.o usys.o
 	$(OBJDUMP) -S _forktest > forktest.asm
 
+# rule for vi
+include vi/Makefile
+
 mkfs: mkfs.c fs.h
 	gcc -m32 -Werror -Wall -o mkfs mkfs.c
 
@@ -167,6 +170,7 @@ UPROGS=\
 	_usertests\
 	_wc\
 	_zombie\
+	_vi\
 
 fs.img: mkfs README.md a $(UPROGS)
 	./mkfs fs.img README.md a $(UPROGS)
