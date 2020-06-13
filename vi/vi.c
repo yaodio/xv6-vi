@@ -1,12 +1,18 @@
+#include "vi.h"
+#include "vulib.h"
+#include "cmd.h"
+
 #include "../types.h"
 #include "../stat.h"
 #include "../user.h"
 #include "../fcntl.h"
 #include "../console.h"
 #include "../color.h"
-#include "vi.h"
 #include "../kbd.h"
-#include "vulib.h"
+
+// 多文件共享全局变量不能在头文件里定义
+// 全局文档变量
+struct text tx  = { NULL,NULL,NULL };
 
 void changecolor(int mode);
 void beautify(void);
@@ -273,44 +279,6 @@ curto(int row, int col, line* l) {
 /*                                             */
 /********************光标操作********************/
 
-// 根据传入的字符数组，构造双向链表，每个节点是一行
-line*
-newlines(uchar *chs, uint n)
-{
-  int i;
-  line *l = (line*)malloc(sizeof(line));
-  memset(l->chs, '\0', MAX_COL);
-  memset(l->colors, DEFAULT_COLOR, MAX_COL);
-  l->n = 0;
-  l->paragraph = 0;
-  l->prev = l->next = NULL;
-
-  // 空行
-  if(chs == NULL || n == 0)
-    return l;
-
-  for(i = 0; i < n; i++){
-    // 换行
-    if(chs[i] == '\n'){
-      l->next = newlines(chs+i+1, n-i-1);
-      l->next->prev = l;
-      break;
-    }
-    // 写满一行，则下一行与该行同段
-    if(i >= MAX_COL){
-      l->next = newlines(chs+i, n-i);
-      l->next->prev = l;
-      l->paragraph = 1;
-      break;
-    }
-    // 填写一行中
-    l->chs[i] = chs[i];
-    l->n++;
-  }
-
-  return l;
-}
-
 // 在屏幕上第row行打印指定的行
 void
 printline(int row, line *l)
@@ -343,15 +311,6 @@ readc(void)
     if(read(0, buf, sizeof(buf[0])) > 0 && buf[0] != 0)
       return buf[0];
   }
-}
-
-void
-savefile(void)
-{
-  if (!(tx.path)) {
-    // TODO: 输入保存路径
-  }
-  else writeto(tx.path, tx.head);
 }
 
 // 删除指定行的第i个字符
@@ -445,12 +404,6 @@ deletec(line *l, int i)
   }
 
   return 1;
-}
-
-void
-writeto (char* path, line* head)
-{
-  // TODO: 输出到path
 }
 
 // 在指定行的第i个字符处换行
@@ -708,24 +661,6 @@ baselinemode(void)
   return cmdcode;
 }
 
-int
-cmdhandler(line* cmd)
-{
-  if (compare(cmd->chs, ":q")) {
-    return QUIT;
-  } else if (compare(cmd->chs, ":w")) {
-    savefile();
-  } else if (compare(cmd->chs, ":wq")) {
-    savefile();
-    return QUIT;
-  }
-    // TODO: 添加其他命令
-  else {
-    // ERROR
-    return NORMAL;
-  }
-}
-
 // 主程序（命令模式）
 void
 editor(void)
@@ -793,55 +728,6 @@ editor(void)
     savefile();
 }
 
-// 从指定的文件路径中读取所有内容，并组织成行结构（双向链表），出错时返回-1
-int
-readtext(char *path)
-{
-  int fd;                 // 文件描述符
-  struct stat st;         // 文件信息
-  uint nbytes;            // 文件大小（字节数）
-  uchar *chs;             // 文件中的所有字符
-
-  // 路径存在且可被打开
-  if(path != NULL && (fd = open(path, O_RDONLY)) >= 0){
-    // 获取文件信息失败则退出
-    if(fstat(fd, &st) < 0){
-      printf(2, "editor: cannot stat %s\n", path);
-      close(fd); // 与open匹配
-      return -1;
-    }
-
-    // 否则检查文件信息，是否为文件（可能是目录）
-    if(st.type != T_FILE){
-      printf(2, "editor: cannot edit a directory: %s\n", path);
-      close(fd); // 与open匹配
-      return -1;
-    }
-
-    // 走到这里说明成功打开了一个文件，读取其中的所有字符
-    nbytes = st.size;
-    chs = (uchar*)malloc(nbytes);
-    read(fd, chs, nbytes);
-    close(fd); // 与open匹配
-  }
-    // 路径不存在
-  else{
-    nbytes = 0;
-    chs = NULL;
-  }
-
-  tx.path = path;
-  // 将文件内容组织成行结构，并用指针进行标记
-  tx.head = tx.tail = newlines(chs, nbytes);
-
-  // 定位尾行
-  while(tx.tail->next != NULL){
-    tx.tail = tx.tail->next;
-  }
-
-  return 0;
-}
-
 // 命令行输入：editor [path]
 // 文件路径path为可选参数，若无则在“临时文件”中使用editor
 int
@@ -850,8 +736,9 @@ main(int argc, char *argv[])
   ushort *backup;         // 屏幕字符备份
   int nbytes;             // 屏幕字符备份内容的字节大小
 
+//  printf(2, "tx in main: %d", &tx);
   // 读取文件，并组织成文本结构体，读取异常则退出
-  if(readtext(argc > 1 ? argv[1] : NULL) < 0){
+  if(readtext(argc > 1 ? argv[1] : NULL, &tx) < 0){
     exit();
   }
 

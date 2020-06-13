@@ -1,7 +1,12 @@
+#ifndef VI_XV6_VI_H
+#define VI_XV6_VI_H
+
 #define NULL          0       // 空指针
 
 #define MAX_COL       SCREEN_WIDTH        // 每行最大字符数设为屏幕宽度
 #define BASE_ROW      SCREEN_HEIGHT-1     // 底线行的行号
+#include "../types.h"
+#include "../console.h"
 
 // 行结构体（双向链表节点）
 typedef struct line {
@@ -14,11 +19,11 @@ typedef struct line {
 } line;
 
 // 文本结构体（双向链表，每个节点表示一行）
-static struct text {
+struct text {
     char *path;                 // 文件路径
     line *head;                 // 首行
     line *tail;                 // 尾行
-} tx = {NULL,NULL,NULL,NULL}; // 全局文档变量
+};
 
 // 光标结构体
 typedef struct cursor {
@@ -32,3 +37,5 @@ static cursor cur = {0, 0, NULL};
 
 // 底线模式部分
 enum { NORMAL, QUIT };
+
+#endif //VI_XV6_VI_H
