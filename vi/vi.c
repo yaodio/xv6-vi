@@ -4,11 +4,9 @@
 #include "cursor.h"
 #include "color.h"
 
-#include "../types.h"
 #include "../stat.h"
 #include "../user.h"
 #include "../fcntl.h"
-#include "../console.h"
 #include "../kbd.h"
 
 // 多文件共享全局变量不能在头文件里定义

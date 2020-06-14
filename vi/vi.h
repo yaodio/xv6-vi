@@ -1,12 +1,12 @@
 #ifndef VI_XV6_VI_H
 #define VI_XV6_VI_H
 
-#define NULL          0       // 空指针
-
-#define MAX_COL       SCREEN_WIDTH        // 每行最大字符数设为屏幕宽度
-#define BASE_ROW      SCREEN_HEIGHT-1     // 底线行的行号
 #include "../types.h"
 #include "../console.h"
+
+#define NULL          0                   // 空指针
+#define MAX_COL       SCREEN_WIDTH        // 每行最大字符数设为屏幕宽度
+#define BASE_ROW      SCREEN_HEIGHT-1     // 底线行的行号
 
 // 行结构体（双向链表节点）
 typedef struct line {
