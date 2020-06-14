@@ -19,11 +19,11 @@ typedef struct line {
 } line;
 
 // 文本结构体（双向链表，每个节点表示一行）
-struct text {
+typedef struct text {
     char *path;                 // 文件路径
     line *head;                 // 首行
     line *tail;                 // 尾行
-};
+} text;
 
 // 光标结构体
 typedef struct cursor {
@@ -31,9 +31,6 @@ typedef struct cursor {
     int col;                    // 光标所在列
     line *l;                    // 光标指向的行节点
 } cursor;
-
-// 全局光标变量
-static cursor cur = {0, 0, NULL};
 
 // 底线模式部分
 enum { NORMAL, QUIT };

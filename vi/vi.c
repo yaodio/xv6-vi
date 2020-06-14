@@ -11,8 +11,8 @@
 #include "../kbd.h"
 
 // 多文件共享全局变量不能在头文件里定义
-// 全局文档变量
-struct text tx  = { NULL,NULL,NULL };
+text tx  = {NULL, NULL, NULL};  // 全局文档变量
+cursor cur = {0, 0, NULL};      // 全局光标变量
 
 void changecolor(int mode);
 void beautify(void);
@@ -666,7 +666,6 @@ void
 editor(void)
 {
   int edit = 0;
-  int pos;
   uchar c;
 
   // 打开彩色模式并打印文件的开头 SCREEN_HEIGHT-1 行
