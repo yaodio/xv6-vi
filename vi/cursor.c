@@ -2,6 +2,8 @@
 #include "color.h"
 #include "vi.h"
 
+#include "../user.h"
+
 // 光标下移, 无法移动则返回0
 int
 curdown(cursor *cur)

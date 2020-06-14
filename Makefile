@@ -181,6 +181,7 @@ clean:
 	*.o *.d *.asm *.sym vectors.S bootblock entryother \
 	initcode initcode.out kernel xv6.img fs.img kernelmemfs mkfs \
 	.gdbinit \
+	vi/*.o vi/*.d \
 	$(UPROGS)
 
 # make a printout
