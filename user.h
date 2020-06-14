@@ -1,3 +1,8 @@
+#ifndef XV6_USER_H
+#define XV6_USER_H
+
+#include "types.h"
+
 struct stat;
 
 // system calls
@@ -44,3 +49,5 @@ void* memset(void*, int, uint);
 void* malloc(uint);
 void free(void*);
 int atoi(const char*);
+
+#endif // XV6_USER_H

@@ -4,6 +4,7 @@ VI_OBJS = \
 	vi/baseline.o\
 	vi/cursor.o\
 	vi/color.o\
+	vi/re.o\
 
 vi/%.o: vi/%.c
 	$(CC) $(CFLAGS) -c -o $@ $<

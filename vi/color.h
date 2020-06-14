@@ -25,3 +25,4 @@
 ushort paintc(uchar c, uchar color);
 //uchar paintc_tb(uchar tcolor, uchar bcolor);
 void paintl (line* l, uchar tcolor, uchar bcolor);
+void reg_test();
