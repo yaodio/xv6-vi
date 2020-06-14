@@ -5,15 +5,6 @@
 #include "../fcntl.h"
 #include "color.h"
 
-char
-compare(char* a, const char* b)
-{
-  int i = 0;
-  while (a[i] != '\0' && b[i] != '\0' && a[i] == b[i])
-    i++;
-  return (a[i] == '\0' && b[i] == '\0');
-}
-
 // 根据传入的字符数组，构造双向链表，每个节点是一行
 line*
 newlines(uchar *chs, uint n)
