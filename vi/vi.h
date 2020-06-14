@@ -25,14 +25,12 @@ typedef struct text {
     line *tail;                 // 尾行
 } text;
 
-// 光标结构体
-typedef struct cursor {
-    int row;                    // 光标所在行
-    int col;                    // 光标所在列
-    line *l;                    // 光标指向的行节点
-} cursor;
-
 // 底线模式部分
 enum { NORMAL, QUIT };
 
-#endif //VI_XV6_VI_H
+// 函数声明
+void printline(int row, line *l);
+void printlines(int row, line *l);
+line* getprevline(line *l, int i);
+
+#endif // VI_XV6_VI_H
