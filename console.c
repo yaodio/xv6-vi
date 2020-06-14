@@ -129,6 +129,17 @@ panic(char *s)
 #define CRTPORT 0x3d4
 static ushort *crt = (ushort*)P2V(0xb8000);  // CGA memory
 
+// 在屏幕的pos位置处设置字符（不移动光标），传入的int c仅低16位有效
+// 其中从右往左数：
+// 第0~7位   字符的ascii码值
+// 第8~11位  文本色
+// 第12~15位 背景色
+void
+showc(int pos, int c)
+{
+  crt[pos] = c & 0xffff;
+}
+
 // 获取光标位置
 int
 getcurpos(void)
@@ -156,7 +167,8 @@ setcurpos(int pos, int c)
   outb(CRTPORT+1, pos>>8);
   outb(CRTPORT, 15);
   outb(CRTPORT+1, pos);
-  crt[pos] = (c&0xff) | 0x0700;
+
+  showc(pos, c);
 }
 
 // 清屏
@@ -164,7 +176,7 @@ void
 clearscreen(void)
 {
   memset(crt, 0, sizeof(crt[0])*MAX_CHAR);
-  setcurpos(0, 0);
+  setcurpos(0, ' ' | 0x0700);
 }
 
 // 备份当前屏幕上的所有字符
@@ -182,17 +194,6 @@ recoverscreen(ushort *backup, int nbytes)
   clearscreen();
   memmove(crt, backup, nbytes);
   setcurpos(pos, crt[pos]); // crt中的字符为ushort类型，占2字节
-}
-
-// 在屏幕的pos位置处设置字符（不移动光标），传入的int c仅低16位有效
-// 其中从右往左数：
-// 第0~7位   字符的ascii码值
-// 第8~11位  文本色
-// 第12~15位 背景色
-void
-showc(int pos, int c)
-{
-  crt[pos] = c & 0xffff;
 }
 
 // 向屏幕输出1个字符
@@ -218,7 +219,7 @@ cgaputc(int c)
     memset(crt+pos, 0, sizeof(crt[0])*(MAX_CHAR - pos));
   }
   
-  setcurpos(pos, crt[pos]);
+  setcurpos(pos, (crt[pos]&0xff) | 0x0700);
 }
 
 void
