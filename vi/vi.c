@@ -360,7 +360,6 @@ insertmode(void)
   return edit;
 }
 
-
 // 底线模式
 int
 baselinemode(void)
@@ -403,14 +402,22 @@ baselinemode(void)
         curright(&cur);
     }
   }
-  // 清空底线
-  line* blank = newlines(NULL, 0);
-  printline(BASE_ROW, blank);
+  line* baseline_tip;
+  switch (cmdcode) {
+  case ERROR:
+    baseline_tip = newlines("ERROR!", 6);
+    paintl(baseline_tip, WHITE, RED);
+    break;
+  default:
+    baseline_tip = newlines(NULL, 0); // 清空底线
+    break;
+  }
+  printline(BASE_ROW, baseline_tip);
   // 恢复光标
   cur = oldcur;
   showcur(&cur);
   free(baseline);
-  free(blank);
+  free(baseline_tip);
   return cmdcode;
 }
 

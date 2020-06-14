@@ -23,4 +23,5 @@
 
 // 函数声明
 ushort paintc(uchar c, uchar color);
-ushort paintc_tb(uchar c, uchar tcolor, uchar bcolor);
+//uchar paintc_tb(uchar tcolor, uchar bcolor);
+void paintl (line* l, uchar tcolor, uchar bcolor);

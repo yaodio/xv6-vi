@@ -12,6 +12,7 @@
 typedef struct line {
     uchar chs[MAX_COL];         // 一行字符（每个字符1字节，ascii码）
     uchar colors[MAX_COL];      // 字符的颜色（每个颜色1字节，高4位是背景色，低4位文本色）
+    uchar bcolors[MAX_COL];      // 字符的背景颜色（每个颜色1字节，高4位是背景色，低4位文本色）
     uint n;                     // 该行的字符数，理论上应该 n <= SCREEN_WIDTH
     struct line *prev;          // 上一行指针
     struct line *next;          // 下一行指针
@@ -26,7 +27,7 @@ typedef struct text {
 } text;
 
 // 底线模式部分
-enum { NORMAL, QUIT };
+enum { NORMAL, QUIT, ERROR };
 
 // 函数声明
 void printline(int row, line *l);

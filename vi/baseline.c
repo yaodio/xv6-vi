@@ -20,6 +20,7 @@ cmdhandler(line* cmd)
   // TODO: 添加其他命令
   else {
     // ERROR
+    return ERROR;
   }
   return NORMAL;
 }
