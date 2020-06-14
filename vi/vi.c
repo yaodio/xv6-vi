@@ -325,7 +325,7 @@ insertmode(void)
         curright(&cur);
         break;
 
-        // 删除光标处前一个位置的字符
+      // 删除光标处前一个位置的字符
       case KEY_BACKSPACE:
         if(curleft(&cur)){
           edit |= deletec(cur.l, cur.col);
@@ -376,9 +376,10 @@ baselinemode(void)
   // 循环读取1个字符，如果是ESC则结束
   while((c = readc()) != KEY_ESC){
     if (c == '\n') {
-      cmdcode = cmdhandler(baseline);
+      cmdcode = cmdhandler(baseline); // 按下换行，处理命令
       break;
     }
+    if ((c == KEY_BACKSPACE && !curleft(&cur))) break; // 没有字符了且按下了退格
 
     switch (c) {
       // 方向键左和上，光标左移
@@ -390,6 +391,11 @@ baselinemode(void)
       case KEY_RT:
       case KEY_DN:
         curright(&cur);
+        break;
+      // 删除光标处前一个位置的字符
+      case KEY_BACKSPACE:
+          deletec(cur.l, cur.col);
+          printline(cur.row, cur.l);
         break;
       default:
         insertc(cur.l, cur.col, c);
