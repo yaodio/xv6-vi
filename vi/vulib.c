@@ -3,7 +3,7 @@
 #include "../user.h"
 #include "../stat.h"
 #include "../fcntl.h"
-#include "../color.h"
+#include "color.h"
 
 char
 compare(char* a, const char* b)
