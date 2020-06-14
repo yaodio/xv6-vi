@@ -13,7 +13,12 @@ paintc(uchar c, uchar color)
 
 // 给字符c涂上文本色tcolor和背景色bcolor
 uchar
-paintc_tb(uchar tcolor, uchar bcolor)
+paintc_tb(uchar c, uchar tcolor, uchar bcolor)
+{
+  return (bcolor << 12) | (tcolor << 8) | c;
+}
+
+uchar getcolor(uchar tcolor, uchar bcolor)
 {
   return (bcolor << 4) | tcolor;
 }
@@ -21,5 +26,5 @@ paintc_tb(uchar tcolor, uchar bcolor)
 void
 paintl (line* l, uchar tcolor, uchar bcolor)
 {
-  for (int i = 0; i < MAX_COL; i++) l->colors[i] = paintc_tb(tcolor, bcolor);
+  for (int i = 0; i < MAX_COL; i++) l->colors[i] = getcolor(tcolor, bcolor);
 }
