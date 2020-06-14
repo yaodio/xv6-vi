@@ -9,15 +9,15 @@ extern struct text tx;
 int
 cmdhandler(line* cmd)
 {
-  if (compare(cmd->chs, ":q")) {
+  if (strcmp(cmd->chs, ":q") == 0) {
     return QUIT;
-  } else if (compare(cmd->chs, ":w")) {
+  } else if (strcmp(cmd->chs, ":w") == 0) {
     savefile();
-  } else if (compare(cmd->chs, ":wq")) {
+  } else if (strcmp(cmd->chs, ":wq") == 0) {
     savefile();
     return QUIT;
   }
-    // TODO: 添加其他命令
+  // TODO: 添加其他命令
   else {
     // ERROR
   }
