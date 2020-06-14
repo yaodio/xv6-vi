@@ -195,7 +195,7 @@ void
 maxcoldown(cursor *cur)
 {
   int pos = SCREEN_WIDTH * cur->row + cur->col;
-  int cc = (DEFAULT_COLOR << 8) | '\0';
+  int cc = paintc('\0', DEFAULT_COLOR);
 
   // 光标所在行为倒数第二行（底线行的上一行）需要整个屏幕内容下移一行打印
   if(cur->row == BASE_ROW-1){
@@ -205,7 +205,7 @@ maxcoldown(cursor *cur)
 
   // 如果有下一行，则光标处显示下一行的字符
   if(cur->l->next)
-    cc = (cur->l->next->colors[0] << 8) | cur->l->next->chs[0];
+    cc = paintc(cur->l->next->chs[0], cur->l->next->colors[0]);
   setcurpos(pos, cc);
 }
 
@@ -225,7 +225,7 @@ showcur(cursor *cur)
   // 计算光标的位置 以及 获取该位置的字符
   pos = SCREEN_WIDTH * cur->row + cur->col;
   // 此处 col < MAX_COL，数组访问不会越界
-  cc = (cur->l->colors[cur->col] << 8) | cur->l->chs[cur->col];
+  cc = paintc(cur->l->chs[cur->col], cur->l->colors[cur->col]);
   setcurpos(pos, cc);
 }
 

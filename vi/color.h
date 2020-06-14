@@ -20,3 +20,7 @@
 // 颜色模式
 #define UNCOLORED       0                       // 黑灰模式（不着色）
 #define COLORFUL        1                       // 彩色模式
+
+// 函数声明
+ushort paintc(uchar c, uchar color);
+ushort paintc_tb(uchar c, uchar tcolor, uchar bcolor);

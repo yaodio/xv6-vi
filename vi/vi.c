@@ -34,7 +34,7 @@ printline(int row, line *l)
 
   pos = row * SCREEN_WIDTH;
   for(i = 0; i < MAX_COL; i++)
-    putcc(pos+i, (l->colors[i] << 8) | l->chs[i]);
+    putcc(pos+i, paintc(l->chs[i], l->colors[i]));
 }
 
 // 从屏幕上第 row 行开始打印指定行 l 以及其后面的行，直到屏幕写满
