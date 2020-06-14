@@ -37,14 +37,19 @@ printline(int row, line *l)
     putcc(pos+i, paintc(l->chs[i], l->colors[i]));
 }
 
-// 从屏幕上第 row 行开始打印指定行 l 以及其后面的行，直到屏幕写满
+// 从屏幕上第 row 行开始打印指定行 l 以及其后面的行，直到屏幕写满到BASE_ROW-1行
 void
 printlines(int row, line *l)
 {
-  // 保留底线行（最多输出 SCREEN_HEIGHT-1 行）
-  while(l != NULL && row < BASE_ROW){
-    printline(row++, l);
-    l = l->next;
+  line *blank = newlines(NULL, 0);
+
+  while(row < BASE_ROW){
+    if(l != NULL){
+      printline(row++, l);
+      l = l->next;
+    }else{
+      printline(row++, blank);
+    }
   }
 }
 
@@ -100,6 +105,13 @@ deletec(line *l, int i)
         l->chs[i-1] = l->chs[i];
       l->chs[i-1] = '\0';
       l->n--;
+      if(l->n == 0 && l->prev != NULL && l->prev->paragraph == 1){
+        l->prev->paragraph = 0;
+        cur.row--;
+        cur.col = MAX_COL;
+        cur.l = l->prev;
+        deletec(l, 0);
+      }
       return 1;
     }
     // 此时 0 < i == l->n
@@ -283,10 +295,11 @@ insertc(line *l, int i, uchar c)
         else{
           l->paragraph = 1;
           newl = newlines(chs, 1);
-          newl->next = l->next;
-          l->next->prev = newl;
-          l->next = newl;
           newl->prev = l;
+          newl->next = l->next;
+          if(l->next)
+            l->next->prev = newl;
+          l->next = newl;
         }
       }
       break;

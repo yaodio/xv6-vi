@@ -4,6 +4,63 @@
 
 #include "../user.h"
 
+/* 调试用
+int
+int2char(char* res, int xx, int base, int sgn)
+{
+  static char digits[] = "0123456789ABCDEF";
+  char buf[16];
+  int i, j, neg;
+  uint x;
+
+  neg = 0;
+  if(sgn && xx < 0){
+    neg = 1;
+    x = -xx;
+  } else {
+    x = xx;
+  }
+
+  i = 0;
+  do{
+    buf[i++] = digits[x % base];
+  }while((x /= base) != 0);
+  if(neg)
+    buf[i++] = '-';
+
+  j = 0;
+  while(--i >= 0)
+    res[j++] = buf[i];
+
+  return j;
+}
+
+void
+setbasemsg(char chs[MAX_COL])
+{
+  int i, pos;
+
+  pos = SCREEN_WIDTH * BASE_ROW;
+  for(i=0; i<MAX_COL; i++)
+    putcc(pos+i, paintc(chs[i], DEFAULT_COLOR));
+}
+
+
+void
+showcoor(int row, int col)
+{
+  char chs[MAX_COL];
+  int i;
+
+  memset(chs, 0, MAX_COL);
+  i = int2char(chs, row, 10, 1);
+  chs[i++] = ',';
+  chs[i++] = ' ';
+  int2char(chs+i, col, 10, 1);
+  setbasemsg(chs);
+}
+*/
+
 // 光标下移, 无法移动则返回0
 int
 curdown(cursor *cur)
@@ -201,12 +258,14 @@ maxcoldown(cursor *cur)
   if(cur->row == BASE_ROW-1){
     printlines(0, getprevline(cur->l, cur->row)->next);
     pos -= SCREEN_WIDTH;
+    cur->row--;
   }
 
   // 如果有下一行，则光标处显示下一行的字符
   if(cur->l->next)
     cc = paintc(cur->l->next->chs[0], cur->l->next->colors[0]);
   setcurpos(pos, cc);
+  // showcoor(cur->row, cur->col);
 }
 
 // 将光标设置到屏幕上, 确保row在 [0, BASE_ROW]，col在 [0, MAX_COL] 范围内
@@ -227,6 +286,7 @@ showcur(cursor *cur)
   // 此处 col < MAX_COL，数组访问不会越界
   cc = paintc(cur->l->chs[cur->col], cur->l->colors[cur->col]);
   setcurpos(pos, cc);
+  // showcoor(cur->row, cur->col);
 }
 
 // 移动光标至某处
