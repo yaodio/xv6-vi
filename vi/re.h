@@ -31,6 +31,7 @@
 extern "C"{
 #endif
 
+#include "stl.h"
 
 /* Typedef'd pointer to get abstract datatype. */
 typedef struct regex_t* re_t;
@@ -47,6 +48,7 @@ int  re_matchp(re_t pattern, const char* text, int* matchlenght);
 /* Find matches of the txt pattern inside text (will compile automatically first). */
 int  re_match(const char* pattern, const char* text, int* matchlenght);
 
+struct list* re_match_all(re_t pattern, const char* text, list* matchlengths);
 
 #ifdef __cplusplus
 }

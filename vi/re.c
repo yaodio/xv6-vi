@@ -31,6 +31,8 @@
 
 #include "../user.h"
 #include "re.h"
+#include "stl.h"
+#include "vi.h"
 
 /* Definitions: */
 
@@ -102,6 +104,42 @@ int re_matchp(re_t pattern, const char* text, int* matchlength)
     }
   }
   return -1;
+}
+
+// 返回一个列表，包含字符串中所有匹配
+struct list* re_match_all(re_t pattern, const char* text, list* matchlengths)
+{
+  list* match = new_list();
+  int matchlength;
+  if (pattern != 0)
+  {
+    if (pattern[0].type == BEGIN)
+    {
+      if (matchpattern(&pattern[1], text, &matchlength)) {
+        push_back(match, 0);
+        push_back(matchlengths, matchlength);
+      }
+    }
+    else
+    {
+      int idx = -1;
+
+      do
+      {
+        idx += 1;
+
+        if (matchpattern(pattern, text, &matchlength))
+        {
+          if (text[0] == '\0')
+            return match;
+          push_back(match, idx);
+          push_back(matchlengths, matchlength);
+        }
+      }
+      while (*text++ != '\0');
+    }
+  }
+  return match;
 }
 
 re_t re_compile(const char* pattern)
