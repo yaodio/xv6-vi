@@ -2,11 +2,19 @@
 #define VI_XV6_BASELINE_H
 
 #include "vi.h"
+#include "color.h"
 
 #define MAX_PATH_CHAR   35
 #define COOR_IDX        60
 
-int cmdhandler(line*);
+#define MSG_COLOR       getcolor(WHITE, DARK_GREY)
+#define CMD_COLOR       getcolor(YELLOW, DARK_GREY)
+#define ERROR_COLOR     getcolor(YELLOW, RED)
+
+// 底线模式部分
+enum { NOCHANGE, SAVE, QUIT, ERROR };
+
+int baselinehandler(line*, int);
 void savefile(void);
 void showpathmsg(void);
 void showinsertmsg(void);

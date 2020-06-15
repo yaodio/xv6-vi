@@ -12,6 +12,7 @@
 // 多文件共享全局变量不能在头文件里定义
 text tx  = {NULL, NULL, NULL, 0};   // 全局文档变量
 cursor cur = {0, 0, NULL};          // 全局光标变量
+line baseline = {{'\0'}, {'\0'}, 0, NULL, NULL, 0};
 
 void changecolor(int mode);
 int insertc(line *l, int i, uchar c);
@@ -375,25 +376,36 @@ insertmode(void)
   return edit;
 }
 
+void
+cleanbaseline(void)
+{
+  memset(baseline.chs, '\0', MAX_COL);
+  memset(baseline.colors, CMD_COLOR, MAX_COL);
+  baseline.chs[0] = ':';
+  baseline.n = 1;
+}
 // 底线模式
 int
-baselinemode(void)
+baselinemode(int edit)
 {
-  int cmdcode = 0;
+  int code = NOCHANGE;
   cursor oldcur = cur; // 保存光标
-  uchar colon[] = ":";
-  line* baseline = newlines(colon, 1); // 底线指针
-  curto(&cur, BASE_ROW, 1, baseline);
-  printline(BASE_ROW, baseline);
+  cleanbaseline();
+
+  curto(&cur, BASE_ROW, 1, &baseline);
+  printline(BASE_ROW, &baseline);
 
   uchar c;
   // 循环读取1个字符，如果是ESC则结束
   while((c = readc()) != KEY_ESC){
-    if (c == '\n') {
-      cmdcode = cmdhandler(baseline); // 按下换行，处理命令
+    // 按下换行，处理命令
+    if (c == '\n'){
+      code = baselinehandler(&baseline, edit);
       break;
     }
-    if ((c == KEY_BACKSPACE && !curleft(&cur))) break; // 没有字符了且按下了退格
+    // 没有字符了且按下了退格
+    if ((c == KEY_BACKSPACE && !curleft(&cur))) 
+      break; 
 
     switch (c) {
       // 方向键左和上，光标左移
@@ -408,8 +420,8 @@ baselinemode(void)
         break;
       // 删除光标处前一个位置的字符
       case KEY_BACKSPACE:
-          deletec(cur.l, cur.col);
-          printline(cur.row, cur.l);
+        deletec(cur.l, cur.col);
+        printline(cur.row, cur.l);
         break;
       default:
         insertc(cur.l, cur.col, c);
@@ -417,23 +429,12 @@ baselinemode(void)
         curright(&cur);
     }
   }
-  line* baseline_tip;
-  switch (cmdcode) {
-  case ERROR:
-    baseline_tip = newlines("ERROR!", 6);
-    paintl(baseline_tip, getcolor(WHITE, RED));
-    break;
-  default:
-    baseline_tip = newlines(NULL, 0); // 清空底线
-    break;
-  }
-  printline(BASE_ROW, baseline_tip);
+
   // 恢复光标
   cur = oldcur;
   showcur(&cur);
-  free(baseline);
-  free(baseline_tip);
-  return cmdcode;
+
+  return code;
 }
 
 // 主程序（命令模式）
@@ -464,7 +465,7 @@ editor(void)
         break;
 
         // 方向键上
-      case KEY_UP:
+      case KEY_UP: 
         curup(&cur);
         break;
         // 方向键下
@@ -481,9 +482,16 @@ editor(void)
         break;
 
       case ':':
-        switch(baselinemode()) {
+        switch(baselinemode(edit)) {
+          case SAVE:
+            edit = 0;
+            break;
           case QUIT:
             return;
+          case ERROR:
+            printline(BASE_ROW, &baseline);
+            c = readc();
+            break;
           default:
             break;
         }
@@ -498,9 +506,6 @@ editor(void)
         break;
     }
   }
-
-  if(edit)
-    savefile();
 }
 
 // 命令行输入：editor [path]

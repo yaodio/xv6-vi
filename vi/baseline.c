@@ -2,7 +2,6 @@
 #include "cursor.h"
 #include "baseline.h"
 #include "vulib.h"
-#include "color.h"
 
 #include "../types.h"
 #include "../user.h"
@@ -11,22 +10,33 @@ extern text tx;
 extern cursor cur;
 
 int
-cmdhandler(line* cmd)
+baselinehandler(line* baseline, int edit)
 {
-  if (strcmp(cmd->chs, ":q") == 0) {
+  if (strcmp(baseline->chs, ":q") == 0) {
+    if(edit){
+      memset(baseline->chs, 0, MAX_COL);
+      memmove(baseline->chs, "Edited but not save (input q! to quit compulsorily)", 51);
+      paintl(baseline, ERROR_COLOR);
+      return ERROR;
+    }
     return QUIT;
-  } else if (strcmp(cmd->chs, ":w") == 0) {
+  } else if (strcmp(baseline->chs, ":q!") == 0){
+    return QUIT;
+  } else if (strcmp(baseline->chs, ":w") == 0){
     savefile();
-  } else if (strcmp(cmd->chs, ":wq") == 0) {
+    return SAVE;
+  } else if (strcmp(baseline->chs, ":wq") == 0){
     savefile();
     return QUIT;
   }
   // TODO: 添加其他命令
   else {
     // ERROR
+    memset(baseline->chs, 0, MAX_COL);
+    memmove(baseline->chs, "Invalid command", 15);
+    paintl(baseline, ERROR_COLOR);
     return ERROR;
   }
-  return NORMAL;
 }
 
 void
@@ -34,7 +44,7 @@ savefile(void)
 {
   if (!(tx.path)) {
     // TODO: 输入保存路径
-//    printf(2, "tx in cmd: %d, no path\n", &tx);
+//    printf(2, "tx in baseline: %d, no path\n", &tx);
   }
   else writetext(tx.path, tx.head);
 }
@@ -105,9 +115,10 @@ showpathmsg(void)
   int2char(base+i, cur.col);
 
   for(i = 0; i < MAX_COL; i++)
-    putcc(pos+i, paintc(base[i], getcolor(WHITE, DARK_GREY)));
+    putcc(pos+i, paintc(base[i], MSG_COLOR));
 
-  free(filename);
+  if(filename)
+    free(filename);
 }
 
 void
@@ -127,5 +138,5 @@ showinsertmsg(void)
   int2char(base+i, cur.col);
 
   for(i = 0; i < MAX_COL; i++)
-    putcc(pos+i, paintc(base[i], getcolor(WHITE, DARK_GREY)));
+    putcc(pos+i, paintc(base[i], MSG_COLOR));
 }
