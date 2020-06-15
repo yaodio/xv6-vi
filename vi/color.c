@@ -143,6 +143,34 @@ beautify_cfile()
     temp = temp->next;
   }
 }
+//提取出一行中的单词，返回一个二维字符数组，一行一个单词
+char** 
+fetch_words(uchar* file,int start_pos,int end_pos,int wordsnum)
+{
+  char **words = (char **)malloc(wordsnum*sizeof(char*));
+  int i;
+  int flag = 0;
+  for(i=start_pos;i<=end_pos;i++)
+  {
+    if(i == start_pos || file[i-1] == ' ')
+    {
+      int j;
+      int word_lenth = 0;
+      for(j=i;j<=end_pos;j++)
+      {
+        if(file[i]==' ')
+          break;
+        word_lenth++;
+      }
+      words[i] = (char *)malloc(word_lenth*sizeof(char));
+       for(j=0;j<=word_lenth;j++)
+       {
+         words[i][j] =file[i+j]; 
+       }
+    }
+  }
+  return words;
+}
 // 根据文件类型来着色
 void
 beautify(void)
@@ -167,8 +195,52 @@ beautify(void)
    *        regex_map[规则名字].push_back(正则)
    *    case "hi":
    *        colormap[规则名字] = 颜色
-   *    }
-   * // when beautify
+   *    }*/
+  map_t regex_map;
+  regex_map = hashmap_new();
+  map_t colormap;
+  colormap = hashmap_new();
+
+  char *vi_file = "xxx.vi";
+  int fd;                 // 文件描述符
+  struct stat st;         // 文件信息
+  int fd = open(vi_file, O_RDONLY);
+  fstat(fd, &st);
+  uchar* the_file = (uchar*)malloc(st.size);
+  read(fd, the_file, st.size);
+  close(fd); // 与open匹配
+  for(int i = 0 ;i < st.size;i++)
+  {
+    if(i==0 || the_file[i-1] == '\n')
+    {
+      int end_pos = st.size;
+      int words_num = 0;
+      for(int j = i;j<st.size;j++)
+      {
+        if(the_file[j] == '\n'||the_file[j] == '\0')
+        {
+          end_pos = j-1;
+          break;
+        }
+        else if(the_file[j] == ' ')
+         words_num++;
+      }
+      words_num++;
+      char ** words = fetch_words(the_file,i,end_pos,words_num);
+      if(matching(words[0],0,"keywords",0,7))
+      {
+        for(int k = 2;k<words_num;k++)
+        {
+          hashmap_put(regex_map, words[1],words[k]);
+        }
+      }
+      else if(matching(words[0],0,"hi",0,2))
+      {
+        hashmap_put(colormap, words[1],words[2]);
+      }
+    }
+  }
+   /* // when beautify
    * 把 tx 里 line 合成一个 char 文本
    * 对每一个规则名字:
    *    pattern = re_compile(regex_map[规则名字] 里每一条正则)
