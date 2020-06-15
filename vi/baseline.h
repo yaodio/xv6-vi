@@ -15,7 +15,7 @@
 enum { NOCHANGE, SAVE, QUIT, ERROR };
 
 int baselinehandler(line*, int);
-void savefile(void);
+int savefile(line*);
 void showpathmsg(void);
 void showinsertmsg(void);
 

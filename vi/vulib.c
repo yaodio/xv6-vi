@@ -43,6 +43,21 @@ newlines(uchar *chs, uint n)
   return l;
 }
 
+void
+setline(line *l, uchar *chs, int n, uchar color)
+{
+  memset(l->chs, '\0', MAX_COL);
+  memset(l->colors, color, MAX_COL);
+  memmove(l->chs, chs, n);
+  l->n = n;
+}
+
+void
+cleanline(line *l)
+{
+  setline(l, NULL, 0, DEFAULT_COLOR);
+}
+
 // 从指定的文件路径中读取所有内容，并组织成行结构（双向链表），出错时返回-1
 int
 readtext(char *path, struct text* txx)
@@ -104,10 +119,10 @@ writetext(char* path, line* l)
   struct stat st;         // 文件信息
 
   // 路径存在且可被打开
-  if(path != NULL && (fd = open(path, O_WRONLY)) >= 0){
+  if(path != NULL && (fd = open(path, O_WRONLY | O_CREATE)) >= 0){
     // 获取文件信息失败则退出
     if(fstat(fd, &st) < 0){
-      printf(2, "editor: cannot stat %s\n", path);
+      // printf(2, "editor: cannot stat %s\n", path);
       close(fd); // 与open匹配
       return -1;
     }
@@ -115,7 +130,7 @@ writetext(char* path, line* l)
     // 否则检查文件信息，是否为文件（可能是目录）
     // 在读文件的时候已经检查，不应有错
     if(st.type != T_FILE){
-      printf(2, "editor: cannot edit a directory: %s\n", path);
+      // printf(2, "editor: cannot edit a directory: %s\n", path);
       close(fd); // 与open匹配
       return -1;
     }

@@ -10,43 +10,63 @@ extern text tx;
 extern cursor cur;
 
 int
+startswidth(uchar *chs, uchar *cmd, int n)
+{
+  int i;
+  for(i = 0; i < n; i++)
+    if(chs[i] != cmd[i])
+      return 0;
+  return 1;
+}
+
+int
 baselinehandler(line* baseline, int edit)
 {
-  if (strcmp(baseline->chs, ":q") == 0) {
+  if (startswidth(baseline->chs, ":q", 2)) {
     if(edit){
-      memset(baseline->chs, 0, MAX_COL);
-      memmove(baseline->chs, "Edited but not save (input q! to quit compulsorily)", 51);
-      paintl(baseline, ERROR_COLOR);
+      setline(baseline, "Edited but not save (input q! to quit compulsorily)", 51, ERROR_COLOR);
       return ERROR;
     }
     return QUIT;
-  } else if (strcmp(baseline->chs, ":q!") == 0){
+  } else if (startswidth(baseline->chs, ":q!", 3)){
     return QUIT;
-  } else if (strcmp(baseline->chs, ":w") == 0){
-    savefile();
-    return SAVE;
-  } else if (strcmp(baseline->chs, ":wq") == 0){
-    savefile();
-    return QUIT;
+  } else if (startswidth(baseline->chs, ":w", 2)){
+    return savefile(baseline) ? SAVE : ERROR;
+  } else if (startswidth(baseline->chs, ":wq", 3)){
+    return savefile(baseline) ? QUIT : ERROR;
   }
   // TODO: 添加其他命令
   else {
     // ERROR
-    memset(baseline->chs, 0, MAX_COL);
-    memmove(baseline->chs, "Invalid command", 15);
-    paintl(baseline, ERROR_COLOR);
+    setline(baseline, "Invalid command", 15, ERROR_COLOR);
     return ERROR;
   }
 }
 
-void
-savefile(void)
+// 该函数未完善
+int
+savefile(line* baseline)
 {
-  if (!(tx.path)) {
-    // TODO: 输入保存路径
-//    printf(2, "tx in baseline: %d, no path\n", &tx);
+  char path[MAX_COL];
+  int i;
+
+  memset(path, '\0', MAX_COL);
+  for(i = 0; i < MAX_COL && baseline->chs[i] != '\0'; i++)
+    if(baseline->chs[i] != ' '){
+      i++;
+      break;
+    }
+  memmove(path, baseline->chs+i, baseline->n - i);
+  if(strlen(path) > 0){
+    strcpy(tx.path, path);
   }
-  else writetext(tx.path, tx.head);
+
+  if(writetext(tx.path, tx.head) < 0){
+    setline(baseline, "Failed to save", 14, ERROR_COLOR);
+    return 0;
+  }
+
+  return 1;
 }
 
 int

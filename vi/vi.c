@@ -376,21 +376,13 @@ insertmode(void)
   return edit;
 }
 
-void
-cleanbaseline(void)
-{
-  memset(baseline.chs, '\0', MAX_COL);
-  memset(baseline.colors, CMD_COLOR, MAX_COL);
-  baseline.chs[0] = ':';
-  baseline.n = 1;
-}
 // 底线模式
 int
 baselinemode(int edit)
 {
   int code = NOCHANGE;
   cursor oldcur = cur; // 保存光标
-  cleanbaseline();
+  setline(&baseline, ":", 1, CMD_COLOR);
 
   curto(&cur, BASE_ROW, 1, &baseline);
   printline(BASE_ROW, &baseline);
