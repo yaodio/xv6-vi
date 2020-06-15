@@ -99,7 +99,10 @@ readtext(char *path, struct text* txx)
     txx->exist = 0;
   }
 
-  txx->path = path;
+  txx->path = (char*)malloc(MAX_COL);
+  memset(txx->path, '\0', MAX_COL);
+  strcpy(txx->path, path);
+  // txx->path = path;
   // 将文件内容组织成行结构，并用指针进行标记
   txx->head = txx->tail = newlines(chs, nbytes);
 

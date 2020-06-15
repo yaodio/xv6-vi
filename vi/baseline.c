@@ -22,18 +22,18 @@ startswidth(uchar *chs, uchar *cmd, int n)
 int
 baselinehandler(line* baseline, int edit)
 {
-  if (startswidth(baseline->chs, ":q", 2)) {
+  if(startswidth(baseline->chs, ":q!", 3)) {
+    return QUIT;
+  } else if(startswidth(baseline->chs, ":q", 2)){
     if(edit){
       setline(baseline, "Edited but not save (input q! to quit compulsorily)", 51, ERROR_COLOR);
       return ERROR;
     }
     return QUIT;
-  } else if (startswidth(baseline->chs, ":q!", 3)){
-    return QUIT;
-  } else if (startswidth(baseline->chs, ":w", 2)){
-    return savefile(baseline) ? SAVE : ERROR;
   } else if (startswidth(baseline->chs, ":wq", 3)){
     return savefile(baseline) ? QUIT : ERROR;
+  } else if (startswidth(baseline->chs, ":w", 2)){
+    return savefile(baseline) ? SAVE : ERROR;
   }
   // TODO: 添加其他命令
   else {
@@ -52,7 +52,7 @@ savefile(line* baseline)
 
   memset(path, '\0', MAX_COL);
   for(i = 0; i < MAX_COL && baseline->chs[i] != '\0'; i++)
-    if(baseline->chs[i] != ' '){
+    if(baseline->chs[i] == ' '){
       i++;
       break;
     }
