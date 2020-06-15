@@ -317,6 +317,7 @@ insertmode(void)
   // 关闭颜色
   changecolor(UNCOLORED);
   printlines(0, getprevline(cur.l, cur.row));
+  showinsertmsg();
   // 循环读取1个字符，如果是ESC则结束
   while((c = readc()) != KEY_ESC){
     switch(c){
@@ -364,6 +365,8 @@ insertmode(void)
         curright(&cur);
         break;
     }
+  
+  showinsertmsg();
   }
 
   // 恢复颜色

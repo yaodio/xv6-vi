@@ -82,11 +82,11 @@ showpathmsg(void)
 
   if((filename = getfilename(tx.path)) != NULL){
     base[i++] = '"';
-    if((len = strlen(filename)) > 35){
+    if((len = strlen(filename)) > MAX_PATH_CHAR){
       base[i++] = '.';
       base[i++] = '.';
-      memmove(base+i, filename+(len-35), 35);
-      i+= 35;
+      memmove(base+i, filename+(len-MAX_PATH_CHAR), MAX_PATH_CHAR);
+      i+= MAX_PATH_CHAR;
     }else{
       memmove(base+i, filename, len);
       i+=len;
@@ -98,7 +98,7 @@ showpathmsg(void)
   if(tx.exist == 0)
     memmove(base+i, "[New File]", 10);
 
-  i = 60;
+  i = COOR_IDX;
   i += int2char(base+i, cur.row);
   base[i++] = ',';
   base[i++] = ' ';
@@ -108,4 +108,24 @@ showpathmsg(void)
     putcc(pos+i, paintc(base[i], getcolor(WHITE, DARK_GREY)));
 
   free(filename);
+}
+
+void
+showinsertmsg(void)
+{
+  int i;
+  uchar base[MAX_COL];
+  int pos = SCREEN_WIDTH * BASE_ROW;
+
+  memset(base, '\0', MAX_COL);
+  memmove(base, "-- INSERT --", 12);
+  
+  i = COOR_IDX;
+  i += int2char(base+i, cur.row);
+  base[i++] = ',';
+  base[i++] = ' ';
+  int2char(base+i, cur.col);
+
+  for(i = 0; i < MAX_COL; i++)
+    putcc(pos+i, paintc(base[i], getcolor(WHITE, DARK_GREY)));
 }
