@@ -136,13 +136,34 @@ beautify_cfile()
 void
 beautify(void)
 {
-  int i,temp;
-  for(i=0;i<sizeof(tx.path);i++)
-    if(tx.path[i] == '.')
-    {
-      temp = i;
-      break;
-    }
-  if(matching(tx.path, temp,".c",0,2)) //如果是C文件
-    beautify_cfile();
+//  int i,temp;
+//  for(i=0;i<sizeof(tx.path);i++)
+//    if(tx.path[i] == '.')
+//    {
+//      temp = i;
+//      break;
+//    }
+//  if(matching(tx.path, temp,".c",0,2)) //如果是C文件
+//    beautify_cfile();
+
+  // 伪代码
+  /**
+   * // when 读取文件
+   * read 文件后缀名.vi
+   * 便利 后缀名.vi
+   *    switch (开头那个词) {
+   *    case "keyword":
+   *        regex_map[规则名字].push_back(正则)
+   *    case "hi":
+   *        colormap[规则名字] = 颜色
+   *    }
+   * // when beautify
+   * 把 tx 里 line 合成一个 char 文本
+   * 对每一个规则名字:
+   *    pattern = re_compile(regex_map[规则名字] 里每一条正则)
+   *    index_list = re_match_all(pattern, 文本, 长度 list)
+   *    便利 index_list:
+   *        找到 index 对应 line 中的字符
+   *        把字符染成colormap[规则名字]
+   * */
 }
