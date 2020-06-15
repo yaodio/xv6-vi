@@ -27,4 +27,5 @@ uchar getcolor(uchar tcolor, uchar bcolor);
 void paintl(line* l, uchar color);
 
 void reg_test();
+void hashmap_test();
 void beautify();

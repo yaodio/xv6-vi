@@ -169,3 +169,9 @@ getfilename(char *path)
   memmove(name, path+i+1, len-i);
   return name;
 }
+
+void*
+calloc(uint size_a, uint size_t)
+{
+  return malloc(size_a * size_t);
+}

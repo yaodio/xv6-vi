@@ -508,6 +508,7 @@ main(int argc, char *argv[])
   ushort *backup;         // 屏幕字符备份
   int nbytes;             // 屏幕字符备份内容的字节大小
   reg_test();
+  hashmap_test();
 
 //  printf(2, "tx in main: %d", &tx);
   // 读取文件，并组织成文本结构体，读取异常则退出

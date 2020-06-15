@@ -4,6 +4,7 @@
 #include "vi.h"
 #include "color.h"
 #include "re.h"
+#include "stl.h"
 
 extern struct text tx;
 
@@ -42,6 +43,16 @@ void reg_test () {
   {
     printf(2, "match at idx %d, %d chars long.\n", match_idx, match_length);
   }
+}
+
+void hashmap_test () {
+  map_t mymap;
+  mymap = hashmap_new();
+  hashmap_put(mymap, "test", 127687);
+  int value;
+  hashmap_get(mymap, "test", (void*)(&value));
+  printf(2, "hashmap test: <test, %d>", value);
+  hashmap_free(mymap);
 }
 
 int//匹配两个字符串

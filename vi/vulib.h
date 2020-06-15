@@ -10,4 +10,6 @@ void cleanline(line *l);
 int readtext(char *path, struct text* txx);
 int writetext (char *path, line *head);
 char* getfilename(char *path);
+void* calloc(uint size_a, uint size_t);
+
 #endif //XV6_CMD_MODE_H
