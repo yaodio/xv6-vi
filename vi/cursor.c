@@ -4,63 +4,6 @@
 
 #include "../user.h"
 
-/* 调试用
-int
-int2char(char* res, int xx, int base, int sgn)
-{
-  static char digits[] = "0123456789ABCDEF";
-  char buf[16];
-  int i, j, neg;
-  uint x;
-
-  neg = 0;
-  if(sgn && xx < 0){
-    neg = 1;
-    x = -xx;
-  } else {
-    x = xx;
-  }
-
-  i = 0;
-  do{
-    buf[i++] = digits[x % base];
-  }while((x /= base) != 0);
-  if(neg)
-    buf[i++] = '-';
-
-  j = 0;
-  while(--i >= 0)
-    res[j++] = buf[i];
-
-  return j;
-}
-
-void
-setbasemsg(char chs[MAX_COL])
-{
-  int i, pos;
-
-  pos = SCREEN_WIDTH * BASE_ROW;
-  for(i=0; i<MAX_COL; i++)
-    putcc(pos+i, paintc(chs[i], DEFAULT_COLOR));
-}
-
-
-void
-showcoor(int row, int col)
-{
-  char chs[MAX_COL];
-  int i;
-
-  memset(chs, 0, MAX_COL);
-  i = int2char(chs, row, 10, 1);
-  chs[i++] = ',';
-  chs[i++] = ' ';
-  int2char(chs+i, col, 10, 1);
-  setbasemsg(chs);
-}
-*/
-
 // 光标下移, 无法移动则返回0
 int
 curdown(cursor *cur)

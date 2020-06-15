@@ -24,6 +24,7 @@ typedef struct text {
     char *path;                 // 文件路径
     line *head;                 // 首行
     line *tail;                 // 尾行
+    int exist;                  // 为0时表示路径指向的文件不存在
 } text;
 
 // 底线模式部分

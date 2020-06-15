@@ -10,11 +10,10 @@
 #include "../kbd.h"
 
 // 多文件共享全局变量不能在头文件里定义
-text tx  = {NULL, NULL, NULL};  // 全局文档变量
-cursor cur = {0, 0, NULL};      // 全局光标变量
+text tx  = {NULL, NULL, NULL, 0};   // 全局文档变量
+cursor cur = {0, 0, NULL};          // 全局光标变量
 
 void changecolor(int mode);
-void beautify(void);
 int insertc(line *l, int i, uchar c);
 
 // 返回指定行往前推的第i个前驱，如果前驱少于i个，则返回最前面的那个前驱
@@ -419,7 +418,7 @@ baselinemode(void)
   switch (cmdcode) {
   case ERROR:
     baseline_tip = newlines("ERROR!", 6);
-    paintl(baseline_tip, WHITE, RED);
+    paintl(baseline_tip, getcolor(WHITE, RED));
     break;
   default:
     baseline_tip = newlines(NULL, 0); // 清空底线
@@ -448,6 +447,7 @@ editor(void)
 
   // 不断读取1个字符进行处理
   while(1){
+    showpathmsg();
     c = readc();
     switch(c){
       // 在光标所在字符后进入插入模式

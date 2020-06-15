@@ -75,11 +75,13 @@ readtext(char *path, struct text* txx)
     read(fd, chs, nbytes);
 //    printf(1, "open file succeed\n%s", chs);
     close(fd); // 与open匹配
+    txx->exist = 1;
   }
     // 路径不存在
   else{
     nbytes = 0;
     chs = NULL;
+    txx->exist = 0;
   }
 
   txx->path = path;
@@ -95,7 +97,7 @@ readtext(char *path, struct text* txx)
 }
 
 int
-writetext (char* path, line* l)
+writetext(char* path, line* l)
 {
   // 输出到path
   int fd;                 // 文件描述符
@@ -130,4 +132,22 @@ writetext (char* path, line* l)
   }
   // 路径不存在
   else return -1;
+}
+
+char*
+getfilename(char *path)
+{
+  int i, len;
+  char* name;
+
+  if(path == NULL)
+    return NULL;
+  
+  len = strlen(path);
+  for(i = len - 1; i>=0 && path[i] != '/'; i--)
+    ;
+  
+  name = (char*)malloc(len-i);
+  memmove(name, path+i+1, len-i);
+  return name;
 }

@@ -1,10 +1,14 @@
 #include "vi.h"
+#include "cursor.h"
 #include "baseline.h"
 #include "vulib.h"
+#include "color.h"
+
 #include "../types.h"
 #include "../user.h"
 
-extern struct text tx;
+extern text tx;
+extern cursor cur;
 
 int
 cmdhandler(line* cmd)
@@ -33,4 +37,75 @@ savefile(void)
 //    printf(2, "tx in cmd: %d, no path\n", &tx);
   }
   else writetext(tx.path, tx.head);
+}
+
+int
+int2char(char* res, int xx)
+{
+  static char digits[] = "0123456789";
+  char buf[16];
+  int i, j, neg;
+  uint x;
+
+  neg = 0;
+  if(xx < 0){
+    neg = 1;
+    x = -xx;
+  } else {
+    x = xx;
+  }
+
+  i = 0;
+  do{
+    buf[i++] = digits[x % 10];
+  }while((x /= 10) != 0);
+  if(neg)
+    buf[i++] = '-';
+
+  j = 0;
+  while(--i >= 0)
+    res[j++] = buf[i];
+
+  return j;
+}
+
+void
+showpathmsg(void)
+{
+  int i = 0;
+  int len = 0;
+  int pos = SCREEN_WIDTH * BASE_ROW;
+  uchar base[MAX_COL];
+  char* filename;
+  
+  memset(base, '\0', MAX_COL);
+
+  if((filename = getfilename(tx.path)) != NULL){
+    base[i++] = '"';
+    if((len = strlen(filename)) > 35){
+      base[i++] = '.';
+      base[i++] = '.';
+      memmove(base+i, filename+(len-35), 35);
+      i+= 35;
+    }else{
+      memmove(base+i, filename, len);
+      i+=len;
+    }
+    base[i++] = '"';
+    base[i++] = ' ';
+  }
+
+  if(tx.exist == 0)
+    memmove(base+i, "[New File]", 10);
+
+  i = 60;
+  i += int2char(base+i, cur.row);
+  base[i++] = ',';
+  base[i++] = ' ';
+  int2char(base+i, cur.col);
+
+  for(i = 0; i < MAX_COL; i++)
+    putcc(pos+i, paintc(base[i], getcolor(WHITE, DARK_GREY)));
+
+  free(filename);
 }

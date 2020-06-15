@@ -5,5 +5,5 @@
 
 int cmdhandler(line*);
 void savefile(void);
-
+void showpathmsg(void);
 #endif //VI_XV6_BASELINE_H
