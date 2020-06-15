@@ -14,22 +14,16 @@ paintc(uchar c, uchar color)
   return (color << 8) | c;
 }
 
-// 给字符c涂上文本色tcolor和背景色bcolor
-uchar
-paintc_tb(uchar c, uchar tcolor, uchar bcolor)
-{
-  return (bcolor << 12) | (tcolor << 8) | c;
-}
-
+// 组合文本色tcolor和背景色bcolor
 uchar getcolor(uchar tcolor, uchar bcolor)
 {
   return (bcolor << 4) | tcolor;
 }
 
 void
-paintl (line* l, uchar tcolor, uchar bcolor)
+paintl(line* l, uchar color)
 {
-  for (int i = 0; i < MAX_COL; i++) l->colors[i] = getcolor(tcolor, bcolor);
+  memset(l->colors, color, MAX_COL);
 }
 
 void reg_test () {

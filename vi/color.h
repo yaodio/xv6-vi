@@ -23,7 +23,8 @@
 
 // 函数声明
 ushort paintc(uchar c, uchar color);
-//uchar paintc_tb(uchar tcolor, uchar bcolor);
-void paintl (line* l, uchar tcolor, uchar bcolor);
+uchar getcolor(uchar tcolor, uchar bcolor);
+void paintl(line* l, uchar color);
+
 void reg_test();
 void beautify();
