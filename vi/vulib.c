@@ -138,7 +138,7 @@ writetext(char* path, line* l)
     // 写入文件
     while (l != NULL) {
       write(fd, l->chs, l->n);
-      if (l->paragraph != 1)
+      if (l->paragraph != 1 && l->next != NULL)
         write(fd, "\n", 1);
       l = l->next;
     }
