@@ -15,3 +15,10 @@ _vi: $(ULIB) $(VI_OBJS)
 	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o $@ $^
 	$(OBJDUMP) -S $@ > $*.asm
 	$(OBJDUMP) -t $@ | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $*.sym
+
+VI_SYNTAX =\
+	vi/syntax/c.vi\
+	vi/syntax/html.vi\
+
+%.vi:
+	cp $(VI_SYNTAX) ./

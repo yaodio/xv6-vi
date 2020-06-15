@@ -16,13 +16,14 @@ push_back(struct list* lst, int data)
 {
   struct int_node* node = (struct int_node*) malloc(sizeof(int_node));
   node->data = data;
+  node->next = NULL;
   if (lst->tail == NULL)
     lst->head = lst->tail = node;
   else {
     lst->tail->next = node;
     lst->tail = node;
   }
-  lst->size ++;
+  lst->size++;
 }
 
 /*

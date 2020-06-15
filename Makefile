@@ -171,8 +171,13 @@ UPROGS=\
 	_zombie\
 	_vi\
 
-fs.img: mkfs README.md a b.c $(UPROGS)
-	./mkfs fs.img README.md a b.c $(UPROGS)
+SYNTAX =\
+	c.vi\
+	html.vi\
+
+fs.img: mkfs README.md a b.c $(UPROGS) $(SYNTAX)
+	./mkfs fs.img README.md a b.c $(SYNTAX) $(UPROGS)
+	rm *.vi
 
 -include *.d
 

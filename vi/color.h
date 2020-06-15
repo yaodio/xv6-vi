@@ -28,4 +28,5 @@ void paintl(line* l, uchar color);
 
 void reg_test();
 void hashmap_test();
+void read_syntax();
 void beautify();

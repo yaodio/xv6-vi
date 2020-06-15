@@ -5,8 +5,12 @@
 #include "color.h"
 #include "re.h"
 #include "stl.h"
+#include "../stat.h"
+#include "../fcntl.h"
 
 extern struct text tx;
+map_t regex_map, colormap;
+list* syntax_keys;
 
 // 给字符c涂上颜色color（color已组合了文本色和背景色信息）
 ushort
@@ -143,49 +147,29 @@ beautify_cfile()
     temp = temp->next;
   }
 }
-//提取出一行中的单词，返回一个二维字符数组，一行一个单词
-char** 
-fetch_words(uchar* file,int start_pos,int end_pos,int wordsnum)
-{
-  char **words = (char **)malloc(wordsnum*sizeof(char*));
-  int i;
-  int flag = 0;
-  for(i=start_pos;i<=end_pos;i++)
-  {
-    if(i == start_pos || file[i-1] == ' ')
-    {
-      int j;
-      int word_lenth = 0;
-      for(j=i;j<=end_pos;j++)
-      {
-        if(file[i]==' ')
-          break;
-        word_lenth++;
-      }
-      words[i] = (char *)malloc(word_lenth*sizeof(char));
-       for(j=0;j<=word_lenth;j++)
-       {
-         words[i][j] =file[i+j]; 
-       }
-    }
-  }
-  return words;
-}
-// 根据文件类型来着色
-void
-beautify(void)
-{
-//  int i,temp;
-//  for(i=0;i<sizeof(tx.path);i++)
-//    if(tx.path[i] == '.')
-//    {
-//      temp = i;
-//      break;
-//    }
-//  if(matching(tx.path, temp,".c",0,2)) //如果是C文件
-//    beautify_cfile();
 
-  // 伪代码
+// 返回下一个单词
+char*
+sscanf (char* chs)
+{
+  int i = 0;
+  while (*(chs + i) != '\0' && *(chs + i) != ' '
+      && *(chs + i) != '\t' && *(chs + i) != '\n')
+    i++;
+  if (*(chs + i) == '\n') return 0;
+  char *res = malloc((i + 1) * sizeof(char));
+  memmove(res, chs, i);
+  chs += i;
+  // 跳过空格
+  while (*chs != '\0' &&
+      (*chs == ' ' || *chs == '\t'))
+    chs++;
+  return res;
+}
+
+void
+read_syntax ()
+{
   /**
    * // when 读取文件
    * read 文件后缀名.vi
@@ -196,50 +180,83 @@ beautify(void)
    *    case "hi":
    *        colormap[规则名字] = 颜色
    *    }*/
-  map_t regex_map;
   regex_map = hashmap_new();
-  map_t colormap;
   colormap = hashmap_new();
+  syntax_keys = new_list();
 
-  char *vi_file = "xxx.vi";
+  int i;
+  for (i = strlen(tx.path)-1; i >= 0; i--)
+    if (tx.path[i] == '.') break;
+  char *vi_file = malloc((strlen(tx.path) - i + 3) * sizeof(char));
+  memmove(vi_file, tx.path + i + 1, strlen(tx.path) - i - 1);
+  memmove(vi_file + i, ".vi\0", 4);
+
   int fd;                 // 文件描述符
   struct stat st;         // 文件信息
-  int fd = open(vi_file, O_RDONLY);
-  fstat(fd, &st);
-  uchar* the_file = (uchar*)malloc(st.size);
-  read(fd, the_file, st.size);
-  close(fd); // 与open匹配
-  for(int i = 0 ;i < st.size;i++)
-  {
-    if(i==0 || the_file[i-1] == '\n')
-    {
-      int end_pos = st.size;
-      int words_num = 0;
-      for(int j = i;j<st.size;j++)
-      {
-        if(the_file[j] == '\n'||the_file[j] == '\0')
-        {
-          end_pos = j-1;
-          break;
-        }
-        else if(the_file[j] == ' ')
-         words_num++;
-      }
-      words_num++;
-      char ** words = fetch_words(the_file,i,end_pos,words_num);
-      if(matching(words[0],0,"keywords",0,7))
-      {
-        for(int k = 2;k<words_num;k++)
-        {
-          hashmap_put(regex_map, words[1],words[k]);
-        }
-      }
-      else if(matching(words[0],0,"hi",0,2))
-      {
-        hashmap_put(colormap, words[1],words[2]);
-      }
+  if ((fd = open(vi_file, O_RDONLY)) >= 0) {
+    if (fstat(fd, &st) < 0) {
+      printf(2, "no syntax file %s\n", vi_file);
+      close(fd);
+      return;
     }
+    if(st.type != T_FILE){
+      printf(2, "editor: cannot edit a directory: %s\n", vi_file);
+      close(fd); // 与open匹配
+      return;
+    }
+
+    uchar *chs = (uchar *) malloc(st.size);
+    read(fd, chs, st.size);
+//    printf(1, "open file succeed\n%s", chs);
+    int error;
+    while (*chs != '\0') {
+      char* type = sscanf(chs); // 类型，keyword 或 hi
+      if (strcmp(type, "keyword") == 0) {
+        // keyword 关键字
+        char* key = sscanf(chs);
+        if (*chs == '\0') return;
+        push_back(syntax_keys, (int) key);
+        char* regex;
+        while ((regex = sscanf(chs)) != 0) {
+          line* lst = new_list();
+          error = hashmap_get(regex_map, key, (void**)(&lst));
+          push_back(lst, (int) regex);
+          if (error != MAP_OK)
+            hashmap_put(regex_map, key, lst);
+          if (*chs == '\0') return;
+        }
+        chs++; // 跳过换行
+      } else if (strcmp(type, "hi") == 0) {
+        // hi 高亮颜色
+        char* key = sscanf(chs);
+        if (*chs == '\0') return;
+        char* color = sscanf(chs);
+        hashmap_put(colormap, key, color);
+        chs++;
+      } else return;
+    }
+  } else printf(2, "cannot open file %s\n", vi_file);
+  close(fd); // 与open匹配
+  free(vi_file);
+}
+
+// 返回所有行拼接的字符串（不含换行）
+char*
+concat_file ()
+{
+  char* chs = malloc(tx.word_count * sizeof(char) + 1);
+  int i = 0;
+  for (line* l = tx.head; l != NULL; l = l->next) {
+    memmove(chs + i, l->chs, l->n);
+    i += l->n;
   }
+  return chs;
+}
+
+// 根据文件类型来着色
+void
+beautify(void)
+{
    /* // when beautify
    * 把 tx 里 line 合成一个 char 文本
    * 对每一个规则名字:
@@ -249,4 +266,25 @@ beautify(void)
    *        找到 index 对应 line 中的字符
    *        把字符染成colormap[规则名字]
    * */
+   char* chs = concat_file();
+   uint* colors = malloc(strlen(chs) * sizeof(uint));
+   // 遍历所有 keyword
+   for (int_node* p = syntax_keys->head; p != NULL; p = p->next) {
+     list* regex = new_list();
+     hashmap_get(regex_map, (char*) p->data, regex);
+     // 遍历 keyword 对应的所有正则表达式
+     for (int_node* reg = regex->head; reg != NULL; reg = reg->next) {
+       // 编译正则
+       re_t pattern = re_compile((char *) reg->data);
+       list *match_length = new_list();
+       list *matches = re_match_all(pattern, chs, match_length);
+       // 遍历所有匹配到的字符的 index
+       for (int_node *r = matches->head; r != NULL; r = r->next) {
+         // TODO: colors[q->data] = hashmap_get(keyword)
+         // 爷写不动了
+       }
+     }
+   }
+
+   free(chs);
 }

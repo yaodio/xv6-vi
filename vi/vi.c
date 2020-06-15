@@ -10,7 +10,7 @@
 #include "../kbd.h"
 
 // 多文件共享全局变量不能在头文件里定义
-text tx  = {NULL, NULL, NULL, 0};   // 全局文档变量
+text tx  = {NULL, NULL, NULL, 0, 0};   // 全局文档变量
 cursor cur = {0, 0, NULL};          // 全局光标变量
 line baseline = {{'\0'}, {'\0'}, 0, NULL, NULL, 0};
 
@@ -348,6 +348,7 @@ insertmode(void)
         break;
       case KEY_DEL:
         edit |= deletec(cur.l, cur.col);
+        tx.word_count--;
         printlines(cur.row, cur.l);
         break;
 
@@ -363,6 +364,7 @@ insertmode(void)
           printlines(cur.row, cur.l);
         else
           printline(cur.row, cur.l);
+        tx.word_count++;
         curright(&cur);
         break;
     }
@@ -507,14 +509,16 @@ main(int argc, char *argv[])
 {
   ushort *backup;         // 屏幕字符备份
   int nbytes;             // 屏幕字符备份内容的字节大小
-  reg_test();
-  hashmap_test();
+//  reg_test();
+//  hashmap_test();
 
 //  printf(2, "tx in main: %d", &tx);
   // 读取文件，并组织成文本结构体，读取异常则退出
   if(readtext(argc > 1 ? argv[1] : NULL, &tx) < 0){
     exit();
   }
+  read_syntax();
+  while(1) ;
 
   // 备份屏幕上的所有字符
   nbytes = getcurpos() * sizeof(backup[0]);
