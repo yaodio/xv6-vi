@@ -21,10 +21,18 @@
 #define UNCOLORED       0                       // 黑灰模式（不着色）
 #define COLORFUL        1                       // 彩色模式
 
+uchar color_name[][32] = {"BLACK", "BLUE", "GREEN", "CYAN", "RED", "PURPLE", "BROWN", "GREY", "DARK_GREY", "LIGHT_BLUE",
+                          "LIGHT_GREEN", "LIGHT_CYAN", "LIGHT_RED", "LIGHT_PURPLE", "YELLOW", "WHITE"};
+uint color_int[] = {BLACK, BLUE, GREEN, CYAN, RED, PURPLE, BROWN, GREY, DARK_GREY, LIGHT_BLUE,
+                          LIGHT_GREEN, LIGHT_CYAN, LIGHT_RED, LIGHT_PURPLE, YELLOW, WHITE};
+
+uint find_color(char*);
+
 // 函数声明
 ushort paintc(uchar c, uchar color);
 uchar getcolor(uchar tcolor, uchar bcolor);
 void paintl(line* l, uchar color);
+void get_color(char*);
 
 void reg_test();
 void hashmap_test();
