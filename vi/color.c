@@ -12,6 +12,11 @@ extern struct text tx;
 map_t regex_map, colormap;
 list* syntax_keys;
 
+uchar color_name[][32] = {"BLACK", "BLUE", "GREEN", "CYAN", "RED", "PURPLE", "BROWN", "GREY", "DARK_GREY", "LIGHT_BLUE",
+                          "LIGHT_GREEN", "LIGHT_CYAN", "LIGHT_RED", "LIGHT_PURPLE", "YELLOW", "WHITE"};
+uint color_int[] = {BLACK, BLUE, GREEN, CYAN, RED, PURPLE, BROWN, GREY, DARK_GREY, LIGHT_BLUE,
+                    LIGHT_GREEN, LIGHT_CYAN, LIGHT_RED, LIGHT_PURPLE, YELLOW, WHITE};
+
 // 给字符c涂上颜色color（color已组合了文本色和背景色信息）
 ushort
 paintc(uchar c, uchar color)
@@ -52,20 +57,29 @@ void reg_test () {
 
 // 返回下一个单词
 char*
-sscanf (char* chs)
+sscanf (uchar* chs, int* offset)
 {
+//  printf(1, "|%c...", *(chs+*offset));
+  // 跳过空格和换行以免行开头有空格
+  while (*(chs+*offset) != '\0' &&
+         (*(chs+*offset) == ' ' || *(chs+*offset) == '\t'))
+    *offset += 1;
+
   int i = 0;
-  while (*(chs + i) != '\0' && *(chs + i) != ' '
-      && *(chs + i) != '\t' && *(chs + i) != '\n')
+  while (*(chs+*offset + i) != '\0' && *(chs+*offset + i) != ' '
+      && *(chs+*offset + i) != '\t' && *(chs+*offset + i) != '\n')
     i++;
-  if (*(chs + i) == '\n') return 0;
+  if (*(chs+*offset) == '\n') i++; // 当offset指向换行时i将等于0，但我们希望把换行也返回回去
   char *res = malloc((i + 1) * sizeof(char));
-  memmove(res, chs, i);
-  chs += i;
-  // 跳过空格
-  while (*chs != '\0' &&
-      (*chs == ' ' || *chs == '\t'))
-    chs++;
+  memmove(res, chs+*offset, i);
+  res[i] = '\0';
+//  printf(1, "%c|", *(chs+*offset + i-1));
+  *offset += i;
+
+  // 跳过空格，不会跳过换行
+  while (*(chs+*offset) != '\0' &&
+      (*(chs+*offset) == ' ' || *(chs+*offset) == '\t'))
+    *offset += 1;
   return res;
 }
 
@@ -82,6 +96,7 @@ read_syntax ()
    *    case "hi":
    *        colormap[规则名字] = 颜色
    *    }*/
+//  printf(2, "into read syntax\n");
   regex_map = hashmap_new();
   colormap = hashmap_new();
   syntax_keys = new_list();
@@ -92,9 +107,11 @@ read_syntax ()
   char *vi_file = malloc((strlen(tx.path) - i + 3) * sizeof(char));
   memmove(vi_file, tx.path + i + 1, strlen(tx.path) - i - 1);
   memmove(vi_file + i, ".vi\0", 4);
+//  printf(2, "read %s\n", vi_file);
 
   int fd;                 // 文件描述符
   struct stat st;         // 文件信息
+  uchar *chs = NULL; int offset = 0;
   if ((fd = open(vi_file, O_RDONLY)) >= 0) {
     if (fstat(fd, &st) < 0) {
       printf(2, "no syntax file %s\n", vi_file);
@@ -107,50 +124,60 @@ read_syntax ()
       return;
     }
 
-    uchar *chs = (uchar *) malloc(st.size);
+    chs = (uchar *) malloc(st.size);
     read(fd, chs, st.size);
-//    printf(1, "open file succeed\n%s", chs);
+//    printf(1, "open file succeed\n%s|EOF", chs);
     int error;
-    while (*chs != '\0') {
-      char* type = sscanf(chs); // 类型，keyword 或 hi
+    while (*(chs+offset) != '\0') {
+      char* type = sscanf(chs, &offset); // 类型，keyword 或 hi
+//      printf(1, "%s ", type);
+      char* key = sscanf(chs, &offset);
+//      printf(1, "%s\n", key);
       if (strcmp(type, "keyword") == 0) {
         // keyword 关键字
-        char* key = sscanf(chs);
-        if (*chs == '\0') return;
+        if (*(chs+offset) == '\0') break;
         push_back(syntax_keys, (int) key);
         char* regex;
-        while ((regex = sscanf(chs)) != 0) {
-          line* lst = new_list();
+        for (regex = sscanf(chs, &offset);*regex != '\n'; regex = sscanf(chs, &offset)) {
+//          printf(1, "%d %s, ", offset, regex);
+          struct list* lst;
+//          printf(1, "new list, ");
           error = hashmap_get(regex_map, key, (void**)(&lst));
+          if (error != MAP_OK) lst  = new_list();
+//          printf(1, "error: %d, ", error);
           push_back(lst, (int) regex);
+//          printf(1, "push list, ");
           if (error != MAP_OK)
             hashmap_put(regex_map, key, lst);
-          if (*chs == '\0') return;
+//          printf(1, "put map\n");
+          if (*(chs+offset) == '\0') break;
         }
-        chs++; // 跳过换行
+//        printf(1, "\n");
       } else if (strcmp(type, "hi") == 0) {
         // hi 高亮颜色
-        char* key = sscanf(chs);
-        if (*chs == '\0') return;
-        char* color = sscanf(chs);
+        if (*(chs+offset) == '\0') break;
+        char* color = sscanf(chs, &offset);
+//        printf(1, "%s ", color);
         hashmap_put(colormap, key, color);
-        chs++;
-      } else return;
+        offset++; // 跳过换行
+//        printf(1, "\n");
+      }
     }
   } else printf(2, "cannot open file %s\n", vi_file);
   close(fd); // 与open匹配
   free(vi_file);
+  free(chs);
 }
 
 // 返回所有行拼接的字符串（不含换行）
 char*
 concat_file ()
 {
-  char* chs = malloc(tx.word_count * sizeof(char) + 1);
-  int i = 0;
+  char* chs = malloc((tx.word_count + 1) * sizeof(char));
+  int i = 0, j;
   for (line* l = tx.head; l != NULL; l = l->next) {
-    memmove(chs + i, l->chs, l->n);
-    i += l->n;
+//    printf(1, "%s  %d\n", l->chs, l->n);
+    for (j = 0; j < (l->n); j++) chs[i++] = l->chs[j];
   }
   return chs;
 }
@@ -159,8 +186,12 @@ uint
 find_color(char* cname)
 {
   int l = sizeof(color_name) / sizeof(color_name[0]);
-  for (int i = 0; i < l; i++)
+//  printf(1, "find %s in %d: ", cname, l);
+  for (int i = 0; i < l; i++) {
+//    printf(1, "%s ", color_name[i]);
     if (strcmp(cname, color_name[i]) == 0) return color_int[i];
+  }
+  return DEFAULT_COLOR;
 }
 
 // 根据文件类型来着色
@@ -176,39 +207,53 @@ beautify(void)
    *        找到 index 对应 line 中的字符
    *        把字符染成colormap[规则名字]
    * */
+//   printf(1, "beautify\n");
    char* chs = concat_file(); // 把所有行的字符合成到一起
+//   printf(1, "%s\n", chs);
    uint* colors = malloc(strlen(chs) * sizeof(uint));
-   int error; uint color_f; int i;
+   memset(colors, DEFAULT_COLOR, strlen(chs) * sizeof(uint));
+   int error; uint color_f; int i, j;
    char* syntax_color; // 存放 hashmap 中查到的颜色字符串
    int_node *idx, *jdx, *reg, *key;
-   list *regex;
+   list *regex; char* creg;
    // 遍历所有 keyword
    for (key = syntax_keys->head; key != NULL; key = key->next) {
+//     printf(1, "key: %s\n", (char*) key->data);
      hashmap_get(regex_map, (char*) key->data, (void**)(&regex));
      // 遍历 keyword 对应的所有正则表达式
      for (reg = regex->head; reg != NULL; reg = reg->next) {
        // 编译正则
-       re_t pattern = re_compile((char *) reg->data);
+       creg = (char*) reg->data;
+       printf(1, "pattern: %s\n", creg); // FIXME: 这句删了就报错
+       re_t pattern = re_compile(creg);
        list *match_length = new_list();
        list *matches = re_match_all(pattern, chs, match_length); // 匹配正则
        // 拿到 hashmap 中对应的颜色
-       error = hashmap_get(colormap, (char*) key->data, (void**)(&syntax_color));
-       if (error != MAP_OK) color_f = WHITE; // 找不到，默认白色
+       error = hashmap_get(colormap, (char*) key->data, (void*)(&syntax_color));
+//       printf(1, "color: %s\n", syntax_color);
+       if (error != MAP_OK) color_f = DEFAULT_COLOR; // 找不到，用默认色
        // 是数字（十进制）就直接放进去，否则查颜色表
-       else color_f = (syntax_color[0] >= '0' && syntax_color[0] <= '9') ?
-           atoi(syntax_color) : find_color(syntax_color);
+       else color_f = getcolor((syntax_color[0] >= '0' && syntax_color[0] <= '9') ?
+           atoi(syntax_color) : find_color(syntax_color), BLACK);
        // 遍历所有匹配到的字符的 index，改颜色
        for (idx = matches->head, jdx = match_length->head; (idx != NULL && jdx != NULL);
-        idx = idx->next, jdx = jdx->next)
-         memset(colors+idx->data, color_f, jdx->data * sizeof(colors[0])); // 把idx后面jdx长度的字符颜色都改一下
+        idx = idx->next, jdx = jdx->next) {
+//         printf(1, "%d-%d: %d, ", idx->data, jdx->data, color_f);
+         memset(colors + idx->data, color_f, jdx->data * sizeof(colors[0])); // 把idx后面jdx长度的字符颜色都改一下
+       }
+       free(match_length);
+       free(matches);
+//       printf(1, "\n");
      }
    }
-   // 将颜色信息同步到每行的 colors
-   int i = 0, j;
+//  printf(1, "re end\n");
+
+  // 将颜色信息同步到每行的 colors
+   i = 0;
    for (line* l = tx.head; l != NULL; l = l->next) {
      j = 0;
      while (l->chs[j] != '\0')
-       l->colors[j++] = colos[i++];
+       l->colors[j++] = colors[i++];
    }
 
    free(chs);

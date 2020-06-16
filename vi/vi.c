@@ -406,6 +406,7 @@ baselinemode(int edit)
 void
 editor(void)
 {
+//  printf(1, "editor begin\n");
   int edit = 0;
   uchar c;
 
@@ -488,8 +489,12 @@ main(int argc, char *argv[])
   if(readtext(argc > 1 ? argv[1] : NULL, &tx) < 0){
     exit();
   }
-  // read_syntax();
-  // while(1) ;
+  read_syntax();
+//  printf(1, "read end\n");
+  beautify();
+//  printf(1, "beautify end\n");
+
+//  while(1) ;
 
   // 备份屏幕上的所有字符
   nbytes = getcurpos() * sizeof(backup[0]);
