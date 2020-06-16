@@ -105,11 +105,14 @@ deletec(line *l, int i)
         l->chs[i-1] = l->chs[i];
       l->chs[i-1] = '\0';
       l->n--;
+      // 没有字符了 且 跟上一行同一段
       if(l->n == 0 && l->prev != NULL && l->prev->paragraph == 1){
         l->prev->paragraph = 0;
-        cur.row--;
-        cur.col = MAX_COL;
-        cur.l = l->prev;
+        if(cur.l == l){
+          cur.row--;
+          cur.col = MAX_COL;
+          cur.l = l->prev;
+        }
         deletec(l, 0);
       }
       return 1;
@@ -155,11 +158,6 @@ deletec(line *l, int i)
       l->chs[i-1] = l->chs[i];
     l->chs[i-1] = l->next->chs[0];
     deletec(l->next, 0);
-    // 下一行被榨干了（变成空行），删掉
-    if(l->next->n == 0) {
-      deletec(l->next, 0);
-      l->paragraph = 0;
-    }
   }
 
   return 1;
