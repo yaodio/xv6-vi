@@ -215,45 +215,7 @@ breakline(line *l, int i)
     printlines(cur.row-1, cur.l->prev);
   showcur(&cur);
 }
-void
-insert_tab(line *l)
-{
-  int tab_length = 4;
-  //该行未满直接插入
-  if(l->n+tab_length<=SCREEN_WIDTH)
-  {
-    for(int i = 0;i<tab_length;i++)
-      insertc(l,cur.col,' ');
-    cur.col+=3;
-  }
-  else //该行已满
-  {
-    //如果是最后一行的不会插入tab
-    if(cur.row >= SCREEN_HEIGHT-2)
-      return;
-    else
-    {
-      if(SCREEN_WIDTH - cur.col < tab_length)//如果光标位置到行尾的距离不足以存放一个tab,tab将会放到下一行
-      {
-        int lo = l->n-1;
-        for(int j = SCREEN_WIDTH - cur.col;j>0;j--)
-        {
-          insertc(l->next,0,l->chs[lo]);
-          l->chs[lo] = '\0';
-          lo--;
-        }
-        for(int i = 0;i<tab_length;i++)
-          insertc(l->next,0,' ');
-      }
-      else
-      {
-        for(int i = 0;i<tab_length;i++)
-          insertc(l,cur.col,' ');
-        cur.col+=3;
-      }
-    }
-  }
-}
+
 // 在指定行的第i个位置插入字符c，插入模式使用的是默认颜色，因此不用修改字符的颜色（l->colors数组）
 int
 insertc(line *l, int i, uchar c)
@@ -262,47 +224,39 @@ insertc(line *l, int i, uchar c)
   uchar chs[1];
   line *newl;
 
-  switch(c){
-    case '\t':
-      insert_tab(l);
-      break;
+  // 该行未满（此时i不可能为MAX_COL）
+  if(l->n < MAX_COL){
+    for(j = l->n; j > i; j--)
+      l->chs[j] = l->chs[j-1];
+    l->chs[i] = c;
+    l->n++;
+  }
+    // 该行已满（此时i可能为MAX_COL）
+  else{
+    // i不为MAX_COL时，保存该行最后1个字符，放到下一行行首
+    if(i < MAX_COL){
+      chs[0] = l->chs[MAX_COL-1];
+      for(j = MAX_COL-1; j > i; j--)
+        l->chs[j] = l->chs[j-1];
+      l->chs[i] = c;
+    }
+      // 否则c放到下一行行首
+    else
+      chs[0] = c;
 
-    default:
-      // 该行未满（此时i不可能为MAX_COL）
-      if(l->n < MAX_COL){
-        for(j = l->n; j > i; j--)
-          l->chs[j] = l->chs[j-1];
-        l->chs[i] = c;
-        l->n++;
-      }
-        // 该行已满（此时i可能为MAX_COL）
-      else{
-        // i不为MAX_COL时，保存该行最后1个字符，放到下一行行首
-        if(i < MAX_COL){
-          chs[0] = l->chs[MAX_COL-1];
-          for(j = MAX_COL-1; j > i; j--)
-            l->chs[j] = l->chs[j-1];
-          l->chs[i] = c;
-        }
-          // 否则c放到下一行行首
-        else
-          chs[0] = c;
-
-        // 下一行是同一段
-        if(l->paragraph)
-          insertc(l->next, 0, chs[0]);
-          // 下一行不是同一段，插入新行
-        else{
-          l->paragraph = 1;
-          newl = newlines(chs, 1);
-          newl->prev = l;
-          newl->next = l->next;
-          if(l->next)
-            l->next->prev = newl;
-          l->next = newl;
-        }
-      }
-      break;
+    // 下一行是同一段
+    if(l->paragraph)
+      insertc(l->next, 0, chs[0]);
+      // 下一行不是同一段，插入新行
+    else{
+      l->paragraph = 1;
+      newl = newlines(chs, 1);
+      newl->prev = l;
+      newl->next = l->next;
+      if(l->next)
+        l->next->prev = newl;
+      l->next = newl;
+    }
   }
 
   return 1;
@@ -313,6 +267,7 @@ int
 insertmode(void)
 {
   int edit = 0;
+  int tab;
   uchar c;
 
   // 关闭颜色
@@ -354,6 +309,24 @@ insertmode(void)
 
       case '\n':
         breakline(cur.l, cur.col);
+        break;
+
+      case '\t':
+        tab = TAB_WIDTH;
+        while(tab--){
+          // 在光标处插入字符c
+          edit |= insertc(cur.l, cur.col, ' ');
+          tx.word_count++;
+        }
+        // 重新打印该行（以及之后的行）
+        if(cur.l->n == MAX_COL && cur.l->paragraph)
+          printlines(cur.row, cur.l);
+        else
+          printline(cur.row, cur.l);
+
+        tab = TAB_WIDTH;
+        while(tab--)
+          curright(&cur);
         break;
 
       default:
