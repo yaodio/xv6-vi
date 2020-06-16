@@ -68,6 +68,8 @@ readtext(char *path, struct text* txx)
   uint nbytes;            // 文件大小（字节数）
   uchar *chs;             // 文件中的所有字符
 
+  txx->path = (char*)malloc(MAX_COL);
+  memset(txx->path, '\0', MAX_COL);
   // 路径存在且可被打开
   if(path != NULL && (fd = open(path, O_RDONLY)) >= 0){
     // 获取文件信息失败则退出
@@ -91,6 +93,7 @@ readtext(char *path, struct text* txx)
 //    printf(1, "open file succeed\n%s", chs);
     close(fd); // 与open匹配
     txx->exist = 1;
+    strcpy(txx->path, path);
   }
     // 路径不存在
   else{
@@ -98,10 +101,6 @@ readtext(char *path, struct text* txx)
     chs = NULL;
     txx->exist = 0;
   }
-
-  txx->path = (char*)malloc(MAX_COL);
-  memset(txx->path, '\0', MAX_COL);
-  strcpy(txx->path, path);
   // txx->path = path;
   // 将文件内容组织成行结构，并用指针进行标记
   txx->head = txx->tail = newlines(chs, nbytes);
@@ -159,10 +158,9 @@ getfilename(char *path)
   int i, len;
   char* name;
 
-  if(path == NULL)
+  if((len = strlen(path)) == 0)
     return NULL;
   
-  len = strlen(path);
   for(i = len - 1; i>=0 && path[i] != '/'; i--)
     ;
   

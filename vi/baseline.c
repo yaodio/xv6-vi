@@ -66,6 +66,7 @@ savefile(line* baseline)
     return 0;
   }
 
+  tx.exist = 1;
   return 1;
 }
 

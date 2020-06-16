@@ -517,8 +517,8 @@ main(int argc, char *argv[])
   if(readtext(argc > 1 ? argv[1] : NULL, &tx) < 0){
     exit();
   }
-  read_syntax();
-  while(1) ;
+  // read_syntax();
+  // while(1) ;
 
   // 备份屏幕上的所有字符
   nbytes = getcurpos() * sizeof(backup[0]);
@@ -550,7 +550,7 @@ changecolor(int mode)
   switch(mode){
     case COLORFUL:
       // 彩色模式根据文件类型来着色
-      beautify();
+      // beautify();
       break;
 
     case UNCOLORED:
