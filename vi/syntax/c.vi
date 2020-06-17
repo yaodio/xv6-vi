@@ -3,9 +3,15 @@ keyword	cLabel case default
 keyword	cConditional if else switch
 keyword	cRepeat while for do
 keyword cComments \/\*[\s\S]*\*\/
+keyword cFunction main printf exit
+keyword	cHead \s?#include\s+
+keyword	cType \s?int\s+ \s?char\s+ 
 
 hi cStatement GREEN
 hi cLabel BLUE
 hi cConditional LIGHT_RED
 hi cRepeat LIGHT_RED
 hi cComments GREY
+hi cFunction YELLOW
+hi cHead LIGHT_RED
+hi cType CYAN
