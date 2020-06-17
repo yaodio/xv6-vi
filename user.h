@@ -29,7 +29,7 @@ int sleep(int);
 int uptime(void);
 
 int getcurpos(void);        // 获取光标位置
-int setcurpos(int);    // 设置光标位置, 以及该位置上的字符
+int setcurpos(int);         // 设置光标位置
 int cls(void);              // 清屏
 int bks(ushort*, int);      // 备份当前屏幕上的所有字符
 int rcs(ushort*, int);      // 恢复屏幕内容

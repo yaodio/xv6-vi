@@ -437,8 +437,6 @@ sys_setcurpos(void)
   
   if(argint(0, &pos) < 0)
     return -1;
-  // if(argint(1, &c) < 0)
-  //   return -1;
   setcurpos(pos);
   return 0;
 }
