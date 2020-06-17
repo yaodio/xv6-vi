@@ -2,17 +2,17 @@ keyword	cStatement goto break return continue asm
 keyword	cLabel case default
 keyword	cConditional if else switch
 keyword	cRepeat while for do
-keyword cComments \/\*[\s\S]*\*\/
-keyword cFunction \s?main(+ \s?printf(+ \s?exit(+
+keyword cFunction \s?main\s*(+ \s?printf\s*(+ \s?exit\s*(+
 keyword cBrackets ( )
 keyword	cHead \s?#include\s+
 keyword	cType \s?int\s+ \s?char\s+ \s?int\n
+keyword cComments \/\*[\s\S]*\*\/ \/\/[\s\S]*/\n
 
-hi cStatement GREEN
+hi cStatement LIGHT_RED
 hi cLabel BLUE
 hi cConditional LIGHT_RED
 hi cRepeat LIGHT_RED
-hi cComments GREY
+hi cComments GREEN
 hi cFunction YELLOW
 hi cBrackets WHITE
 hi cHead LIGHT_RED
