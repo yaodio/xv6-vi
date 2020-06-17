@@ -182,7 +182,7 @@ concat_file ()
   for (line* l = tx.head; l != NULL; l = l->next)
     if(!l->paragraph)
       line_num++;
-  char* chs = malloc((tx.word_count + line_num) * sizeof(char));
+  char* chs = malloc((tx.nchar + line_num) * sizeof(char));
   int i = 0, j;
   for (line* l = tx.head; l != NULL; l = l->next) {
 //    printf(1, "%s  %d\n", l->chs, l->n);
