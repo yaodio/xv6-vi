@@ -6,7 +6,7 @@ keyword cFunction \s?main\s*(+ \s?printf\s*(+ \s?exit\s*(+
 keyword cBrackets ( )
 keyword	cHead \s?#include\s+
 keyword	cType \s?int\s+ \s?char\s+ \s?int\n
-keyword cComments \/\*[\s\S]*\*\/ \/\/[\s\S]*/\n
+keyword cComments \/\*[\s\S]*\*\/ \/\/[\s\S]*\n
 
 hi cStatement LIGHT_RED
 hi cLabel BLUE
