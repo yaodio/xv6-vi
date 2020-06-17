@@ -115,13 +115,13 @@ read_syntax ()
   uchar *chs = NULL; int offset = 0;
   if ((fd = open(vi_file, O_RDONLY)) >= 0) {
     if (fstat(fd, &st) < 0) {
-      printf(2, "no syntax file %s\n", vi_file);
+//      printf(2, "no syntax file %s\n", vi_file);
       close(fd);
       free(vi_file);
       return;
     }
     if(st.type != T_FILE){
-      printf(2, "syntax: cannot read a directory: %s\n", vi_file);
+//      printf(2, "syntax: cannot read a directory: %s\n", vi_file);
       close(fd); // 与open匹配
       free(vi_file);
       return;
@@ -168,10 +168,12 @@ read_syntax ()
 //        printf(1, "\n");
       }
     }
-  } else printf(2, "cannot open file %s\n", vi_file);
+    free(chs);
+  } else {
+//    printf(2, "cannot open file %s\n", vi_file);
+  }
   close(fd); // 与open匹配
   free(vi_file);
-  free(chs);
 }
 
 // 返回所有行拼接的字符串（不含换行）
