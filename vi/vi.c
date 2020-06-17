@@ -526,7 +526,7 @@ changecolor(int mode)
   switch(mode){
     case COLORFUL:
       // 彩色模式根据文件类型来着色
-      // beautify();
+      beautify();
       break;
 
     case UNCOLORED:

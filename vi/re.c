@@ -110,14 +110,14 @@ int re_matchp(re_t pattern, const char* text, int* matchlength)
 struct list* re_match_all(re_t pattern, const char* text, list* matchlengths)
 {
   list* match = new_list();
-  int matchlength;
   if (pattern != 0)
   {
     if (pattern[0].type == BEGIN)
     {
-      if (matchpattern(&pattern[1], text, &matchlength)) {
+      int *matchlength = malloc(sizeof(int));
+      if (matchpattern(&pattern[1], text, matchlength)) {
         push_back(match, 0);
-        push_back(matchlengths, matchlength);
+        push_back(matchlengths, (int) matchlength);
       }
     }
     else
@@ -126,14 +126,16 @@ struct list* re_match_all(re_t pattern, const char* text, list* matchlengths)
 
       do
       {
+        int *matchlength = malloc(sizeof(int));
         idx += 1;
 
-        if (matchpattern(pattern, text, &matchlength))
+        if (matchpattern(pattern, text, matchlength))
         {
           if (text[0] == '\0')
             return match;
           push_back(match, idx);
-          push_back(matchlengths, matchlength);
+          push_back(matchlengths, (int) matchlength);
+          matchlength = malloc(sizeof(int));
         }
       }
       while (*text++ != '\0');

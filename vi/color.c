@@ -104,6 +104,7 @@ read_syntax ()
   int i;
   for (i = strlen(tx.path)-1; i >= 0; i--)
     if (tx.path[i] == '.') break;
+  if (i < 0) return;
   char *vi_file = malloc((strlen(tx.path) - i + 3) * sizeof(char));
   memmove(vi_file, tx.path + i + 1, strlen(tx.path) - i - 1);
   memmove(vi_file + i, ".vi\0", 4);
@@ -116,11 +117,13 @@ read_syntax ()
     if (fstat(fd, &st) < 0) {
       printf(2, "no syntax file %s\n", vi_file);
       close(fd);
+      free(vi_file);
       return;
     }
     if(st.type != T_FILE){
-      printf(2, "editor: cannot edit a directory: %s\n", vi_file);
+      printf(2, "syntax: cannot read a directory: %s\n", vi_file);
       close(fd); // 与open匹配
+      free(vi_file);
       return;
     }
 
@@ -131,9 +134,9 @@ read_syntax ()
     while (*(chs+offset) != '\0') {
       char* type = sscanf(chs, &offset); // 类型，keyword 或 hi
 //      printf(1, "%s ", type);
-      char* key = sscanf(chs, &offset);
-//      printf(1, "%s\n", key);
       if (strcmp(type, "keyword") == 0) {
+        char* key = sscanf(chs, &offset);
+//        printf(1, "%s\n", key);
         // keyword 关键字
         if (*(chs+offset) == '\0') break;
         push_back(syntax_keys, (int) key);
@@ -154,6 +157,8 @@ read_syntax ()
         }
 //        printf(1, "\n");
       } else if (strcmp(type, "hi") == 0) {
+        char* key = sscanf(chs, &offset);
+//        printf(1, "%s\n", key);
         // hi 高亮颜色
         if (*(chs+offset) == '\0') break;
         char* color = sscanf(chs, &offset);
@@ -186,10 +191,11 @@ uint
 find_color(char* cname)
 {
   int l = sizeof(color_name) / sizeof(color_name[0]);
-//  printf(1, "find %s in %d: ", cname, l);
   for (int i = 0; i < l; i++) {
-//    printf(1, "%s ", color_name[i]);
-    if (strcmp(cname, color_name[i]) == 0) return color_int[i];
+    if (strcmp(cname, color_name[i]) == 0) {
+//      printf(1, "found %s: %d\n", color_name[i], color_int[i]);
+      return color_int[i];
+    }
   }
   return DEFAULT_COLOR;
 }
@@ -198,6 +204,7 @@ find_color(char* cname)
 void
 beautify(void)
 {
+  if (syntax_keys->size == 0) return;
    /* // when beautify
    * 把 tx 里 line 合成一个 char 文本
    * 对每一个规则名字:
@@ -224,7 +231,7 @@ beautify(void)
      for (reg = regex->head; reg != NULL; reg = reg->next) {
        // 编译正则
        creg = (char*) reg->data;
-       printf(1, "pattern: %s\n", creg); // FIXME: 这句删了就报错
+//       printf(1, "pattern: %s, ", creg); // FIXME: 这句删了就报错
        re_t pattern = re_compile(creg);
        list *match_length = new_list();
        list *matches = re_match_all(pattern, chs, match_length); // 匹配正则
@@ -238,8 +245,8 @@ beautify(void)
        // 遍历所有匹配到的字符的 index，改颜色
        for (idx = matches->head, jdx = match_length->head; (idx != NULL && jdx != NULL);
         idx = idx->next, jdx = jdx->next) {
-//         printf(1, "%d-%d: %d, ", idx->data, jdx->data, color_f);
-         memset(colors + idx->data, color_f, jdx->data * sizeof(colors[0])); // 把idx后面jdx长度的字符颜色都改一下
+//         printf(1, "|%c-%c|: %d, ", chs[idx->data], chs[idx->data + *(int*)(jdx->data)], color_f);
+         memset(colors + idx->data, color_f, *(int*)(jdx->data) * sizeof(colors[0])); // 把idx后面jdx长度的字符颜色都改一下
        }
        free(match_length);
        free(matches);
@@ -258,4 +265,5 @@ beautify(void)
 
    free(chs);
    free(colors);
+//   while (1);
 }
