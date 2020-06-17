@@ -43,7 +43,6 @@ baselinehandler(line* baseline, int edit)
   }
 }
 
-// 该函数未完善
 int
 savefile(line* baseline)
 {

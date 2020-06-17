@@ -10,9 +10,9 @@
 #include "../kbd.h"
 
 // 多文件共享全局变量不能在头文件里定义
-text tx  = {NULL, NULL, NULL, 0, 0};   // 全局文档变量
-cursor cur = {0, 0, NULL};          // 全局光标变量
-line baseline = {{'\0'}, {'\0'}, 0, NULL, NULL, 0};
+text tx  = {NULL, NULL, NULL, 0, 0};                  // 全局文档变量
+cursor cur = {0, 0, NULL};                            // 全局光标变量
+line baseline = {{'\0'}, {'\0'}, 0, NULL, NULL, 0};   // 底线行
 
 void changecolor(int mode);
 int insertc(line *l, int i, uchar c);
