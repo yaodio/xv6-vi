@@ -244,7 +244,7 @@ read_syntax ()
 char*
 concat_file ()
 {
-  char* chs = malloc(tx.word_count * sizeof(char) + 1);
+  char* chs = malloc(tx.nchar * sizeof(char) + 1);
   int i = 0;
   for (line* l = tx.head; l != NULL; l = l->next) {
     memmove(chs + i, l->chs, l->n);
