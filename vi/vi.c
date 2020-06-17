@@ -491,7 +491,6 @@ main(int argc, char *argv[])
   }
   read_syntax();
 //  printf(1, "read end\n");
-  beautify();
 //  printf(1, "beautify end\n");
 
 //  while(1) ;
