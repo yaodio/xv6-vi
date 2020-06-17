@@ -218,7 +218,7 @@ beautify(void)
    char* chs = concat_file(); // 把所有行的字符合成到一起
 //   printf(1, "%s\n", chs);
    uint* colors = malloc(strlen(chs) * sizeof(uint));
-   memset(colors, DEFAULT_COLOR, strlen(chs) * sizeof(uint));
+   memset(colors, (BLACK << 4) | WHITE, strlen(chs) * sizeof(uint));
    int error; uint color_f; int i, j;
    char* syntax_color; // 存放 hashmap 中查到的颜色字符串
    int_node *idx, *jdx, *reg, *key;
