@@ -188,47 +188,23 @@ curright(cursor *cur)
   return 1;
 }
 
-// 特殊情况处理：光标所在列为MAX_COL
-// 出现的原因是，当光标指向的这一行与下一行不同段 且 这一行为MAX_COL个字符
-// 此时光标会挤到下一行，但还是指向这一行
+// 将光标设置到屏幕上, 确保row在 [0, BASE_ROW]，col在 [0, MAX_COL] 范围内
 void
-maxcoldown(cursor *cur)
+showcur(cursor *cur)
 {
-  int pos = SCREEN_WIDTH * cur->row + cur->col;
-  int cc = paintc('\0', DEFAULT_COLOR);
+  int pos;
+  // 计算光标的位置
+  pos = SCREEN_WIDTH * cur->row + cur->col;
 
-  // 光标所在行为倒数第二行（底线行的上一行）需要整个屏幕内容下移一行打印
-  if(cur->row == BASE_ROW-1){
+  // 光标所在行为倒数第二行（底线行的上一行）的末尾（光标所在列为MAX_COL）
+  // 需要整个屏幕内容下移一行打印
+  if(cur->col == MAX_COL && cur->row == BASE_ROW-1){
     printlines(0, getprevline(cur->l, cur->row)->next);
     pos -= SCREEN_WIDTH;
     cur->row--;
   }
 
-  // 如果有下一行，则光标处显示下一行的字符
-  if(cur->l->next)
-    cc = paintc(cur->l->next->chs[0], cur->l->next->colors[0]);
-  setcurpos(pos, cc);
-  // showcoor(cur->row, cur->col);
-}
-
-// 将光标设置到屏幕上, 确保row在 [0, BASE_ROW]，col在 [0, MAX_COL] 范围内
-// col = MAX_COL时要特殊处理
-void
-showcur(cursor *cur)
-{
-  int pos, cc;
-
-  // 特殊情况
-  if(cur->col == MAX_COL){
-    maxcoldown(cur);
-    return;
-  }
-
-  // 计算光标的位置 以及 获取该位置的字符
-  pos = SCREEN_WIDTH * cur->row + cur->col;
-  // 此处 col < MAX_COL，数组访问不会越界
-  cc = paintc(cur->l->chs[cur->col], cur->l->colors[cur->col]);
-  setcurpos(pos, cc);
+  setcurpos(pos);
   // showcoor(cur->row, cur->col);
 }
 

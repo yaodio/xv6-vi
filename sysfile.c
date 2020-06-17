@@ -433,13 +433,13 @@ sys_getcurpos(void)
 int
 sys_setcurpos(void)
 {
-  int pos, c;
+  int pos;
   
   if(argint(0, &pos) < 0)
     return -1;
-  if(argint(1, &c) < 0)
-    return -1;
-  setcurpos(pos, c);
+  // if(argint(1, &c) < 0)
+  //   return -1;
+  setcurpos(pos);
   return 0;
 }
 
