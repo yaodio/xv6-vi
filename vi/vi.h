@@ -25,7 +25,7 @@ typedef struct text {
     line *head;                 // 首行
     line *tail;                 // 尾行
     int exist;                  // 为0时表示路径指向的文件不存在
-    int word_count;
+    int nchar;                  // 字符数
 } text;
 
 // 函数声明

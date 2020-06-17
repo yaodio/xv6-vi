@@ -107,7 +107,7 @@ readtext(char *path, struct text* txx)
 
   // 定位尾行
   while(txx->tail->next != NULL){
-    txx->word_count += txx->tail->n;
+    txx->nchar += txx->tail->n;
     txx->tail = txx->tail->next;
   }
 

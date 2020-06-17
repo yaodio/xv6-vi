@@ -301,7 +301,7 @@ insertmode(void)
         break;
       case KEY_DEL:
         edit |= deletec(cur.l, cur.col);
-        tx.word_count--;
+        tx.nchar--;
         printlines(cur.row, cur.l);
         break;
 
@@ -314,7 +314,7 @@ insertmode(void)
         while(tab--){
           // 在光标处插入字符c
           edit |= insertc(cur.l, cur.col, ' ');
-          tx.word_count++;
+          tx.nchar++;
         }
         // 重新打印该行（以及之后的行）
         if(cur.l->n == MAX_COL && cur.l->paragraph)
@@ -335,7 +335,7 @@ insertmode(void)
           printlines(cur.row, cur.l);
         else
           printline(cur.row, cur.l);
-        tx.word_count++;
+        tx.nchar++;
         curright(&cur);
         break;
     }
