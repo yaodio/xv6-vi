@@ -240,13 +240,13 @@ beautify(void)
      for (reg = regex->head; reg != NULL; reg = reg->next) {
        // 编译正则
        creg = (char*) reg->data;
-       printf(1, "pattern: %s, ", creg);
+//       printf(1, "pattern: %s, ", creg);
        re_t pattern = re_compile(creg);
        list *match_length = new_list();
        list *matches = re_match_all(pattern, chs, match_length); // 匹配正则
        // 拿到 hashmap 中对应的颜色
        error = hashmap_get(colormap, (char*) key->data, (void*)(&syntax_color));
-       printf(1, "color: %s\n", syntax_color);
+//       printf(1, "color: %s\n", syntax_color);
        if (error != MAP_OK) color_f = DEFAULT_COLOR; // 找不到，用默认色
        // 是数字（十进制）就直接放进去，否则查颜色表
        else color_f = getcolor((syntax_color[0] >= '0' && syntax_color[0] <= '9') ?
@@ -254,12 +254,12 @@ beautify(void)
        // 遍历所有匹配到的字符的 index，改颜色
        for (idx = matches->head, jdx = match_length->head; (idx != NULL && jdx != NULL);
         idx = idx->next, jdx = jdx->next) {
-         printf(1, "|%c-%c|: %d, ", chs[idx->data], chs[idx->data + *(int*)(jdx->data)], color_f);
+//         printf(1, "|%c-%c|: %d, ", chs[idx->data], chs[idx->data + *(int*)(jdx->data)], color_f);
          memset(colors + idx->data, color_f, *(int*)(jdx->data) * sizeof(colors[0])); // 把idx后面jdx长度的字符颜色都改一下
        }
        free(match_length);
        free(matches);
-       printf(1, "\n");
+//       printf(1, "\n");
      }
    }
 //  printf(1, "re end\n");
