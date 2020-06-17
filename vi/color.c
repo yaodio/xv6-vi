@@ -178,11 +178,20 @@ read_syntax ()
 char*
 concat_file ()
 {
-  char* chs = malloc((tx.word_count + 1) * sizeof(char));
+  int line_num = 0;
+  for (line* l = tx.head; l != NULL; l = l->next)
+    if(!l->paragraph)
+      line_num++;
+  char* chs = malloc((tx.word_count + line_num) * sizeof(char));
   int i = 0, j;
   for (line* l = tx.head; l != NULL; l = l->next) {
 //    printf(1, "%s  %d\n", l->chs, l->n);
-    for (j = 0; j < (l->n); j++) chs[i++] = l->chs[j];
+    for (j = 0; j < (l->n); j++)
+    {
+      chs[i++] = l->chs[j];
+    } 
+    if(l->next!=NULL && !l->paragraph)
+      chs[i++] = '\n';
   }
   return chs;
 }
@@ -260,7 +269,11 @@ beautify(void)
    for (line* l = tx.head; l != NULL; l = l->next) {
      j = 0;
      while (l->chs[j] != '\0')
-       l->colors[j++] = colors[i++];
+     {
+      while(chs[i] == '\n')
+        i++;
+      l->colors[j++] = colors[i++];
+     }
    }
 
    free(chs);
