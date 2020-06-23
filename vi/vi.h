@@ -23,7 +23,6 @@ typedef struct line {
 typedef struct text {
     char *path;                 // 文件路径
     line *head;                 // 首行
-    line *tail;                 // 尾行
     int exist;                  // 为0时表示路径指向的文件不存在
     int nchar;                  // 字符数
 } text;

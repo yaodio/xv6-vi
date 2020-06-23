@@ -67,6 +67,7 @@ readtext(char *path, struct text* txx)
   struct stat st;         // 文件信息
   uint nbytes;            // 文件大小（字节数）
   uchar *chs;             // 文件中的所有字符
+  line *l;                // 迭代用的临时指针
 
   txx->path = (char*)malloc(MAX_COL);
   memset(txx->path, '\0', MAX_COL);
@@ -102,13 +103,13 @@ readtext(char *path, struct text* txx)
     txx->exist = 0;
   }
   // txx->path = path;
-  // 将文件内容组织成行结构，并用指针进行标记
-  txx->head = txx->tail = newlines(chs, nbytes);
+  // 将文件内容组织成行结构，并用head指针记录头节点
+  txx->head = l = newlines(chs, nbytes);
 
-  // 定位尾行
-  while(txx->tail->next != NULL){
-    txx->nchar += txx->tail->n;
-    txx->tail = txx->tail->next;
+  // 字符计数
+  while(l->next != NULL){
+    txx->nchar += l->n;
+    l = l->next;
   }
 
   return 0;
