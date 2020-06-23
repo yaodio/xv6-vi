@@ -251,7 +251,7 @@ struct {
 static int showflag = 1;      // 为0时不打印到屏幕上
 static int bufflag = 1;       // 为0时不缓存键盘输入，马上读取1个字符
 static int backspaceflag = 1; // 为0时不拦截退格键
-// 设置bufflag和showflag
+// 设置showflag、bufflag、backspaceflag
 void
 setflag(int sf, int bf, int bsf)
 {

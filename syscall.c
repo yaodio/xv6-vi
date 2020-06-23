@@ -101,11 +101,11 @@ extern int sys_uptime(void);
 
 extern int sys_getcurpos(void);
 extern int sys_setcurpos(void);
+extern int sys_putcc(void);
+extern int sys_consflag(void);
 extern int sys_cls(void);
 extern int sys_bks(void);
 extern int sys_rcs(void);
-extern int sys_consflag(void);
-extern int sys_putcc(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -132,11 +132,11 @@ static int (*syscalls[])(void) = {
 
 [SYS_getcurpos]   sys_getcurpos,
 [SYS_setcurpos]   sys_setcurpos,
+[SYS_putcc]       sys_putcc,
+[SYS_consflag]    sys_consflag,
 [SYS_cls]         sys_cls,
 [SYS_bks]         sys_bks,
 [SYS_rcs]         sys_rcs,
-[SYS_consflag]    sys_consflag,
-[SYS_putcc]       sys_putcc,
 };
 
 void

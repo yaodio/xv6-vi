@@ -23,8 +23,8 @@
 
 #define SYS_getcurpos  22
 #define SYS_setcurpos  23
-#define SYS_cls        24
-#define SYS_bks        25
-#define SYS_rcs        26
-#define SYS_consflag   27
-#define SYS_putcc      28
+#define SYS_putcc      24
+#define SYS_consflag   25
+#define SYS_cls        26
+#define SYS_bks        27
+#define SYS_rcs        28
