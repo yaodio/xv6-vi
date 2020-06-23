@@ -40,7 +40,7 @@
 #define MAX_CHAR_CLASS_LEN      40    /* Max length of character-class buffer in.   */
 
 
-enum { UNUSED, DOT, BEGIN, END, QUESTIONMARK, STAR, PLUS, CHAR, CHAR_CLASS, INV_CHAR_CLASS, DIGIT, NOT_DIGIT, ALPHA, NOT_ALPHA, WHITESPACE, NOT_WHITESPACE, LINE_BREAK /* BRANCH */ };
+enum { UNUSED, DOT, BEGIN, END, QUESTIONMARK, STAR, PLUS, CHAR, CHAR_CLASS, INV_CHAR_CLASS, DIGIT, NOT_DIGIT, ALPHA, NOT_ALPHA, WHITESPACE, NOT_WHITESPACE, LINE_BREAK, WORD_EDGE, /* BRANCH */ };
 
 typedef struct regex_t
 {
@@ -64,9 +64,11 @@ static int matchdigit(char c);
 static int matchalpha(char c);
 static int matchwhitespace(char c);
 static int matchlinebreak(char c);
+static int matchwordedge(char c);
 static int matchmetachar(char c, const char* str);
 static int matchrange(char c, const char* str);
 static int ismetachar(char c);
+void re_print(regex_t* pattern);
 
 
 
@@ -111,8 +113,10 @@ int re_matchp(re_t pattern, const char* text, int* matchlength)
 struct list* re_match_all(re_t pattern, const char* text, list* matchlengths)
 {
   list* match = new_list();
+
   if (pattern != 0)
   {
+//    re_print(pattern);
     if (pattern[0].type == BEGIN)
     {
       int *matchlength = malloc(sizeof(int));
@@ -128,6 +132,7 @@ struct list* re_match_all(re_t pattern, const char* text, list* matchlengths)
       do
       {
         int *matchlength = malloc(sizeof(int));
+        *matchlength = 0;
         idx += 1;
 
         if (matchpattern(pattern, text, matchlength))
@@ -136,7 +141,6 @@ struct list* re_match_all(re_t pattern, const char* text, list* matchlengths)
             return match;
           push_back(match, idx);
           push_back(matchlengths, (int) matchlength);
-          matchlength = malloc(sizeof(int));
         }
       }
       while (*text++ != '\0');
@@ -190,7 +194,8 @@ re_t re_compile(const char* pattern)
             case 'W': {    re_compiled[j].type = NOT_ALPHA;        } break;
             case 's': {    re_compiled[j].type = WHITESPACE;       } break;
             case 'S': {    re_compiled[j].type = NOT_WHITESPACE;   } break;
-            case 'n': {    re_compiled[j].type = LINE_BREAK;   } break;
+            case 'n': {    re_compiled[j].type = LINE_BREAK;       } break;
+            case 'b': {    re_compiled[j].type = WORD_EDGE;        } break;
 
             /* Escaped character, e.g. '.' or '$' */ 
             default:  
@@ -276,7 +281,7 @@ re_t re_compile(const char* pattern)
 
 void re_print(regex_t* pattern)
 {
-  const char* types[] = { "UNUSED", "DOT", "BEGIN", "END", "QUESTIONMARK", "STAR", "PLUS", "CHAR", "CHAR_CLASS", "INV_CHAR_CLASS", "DIGIT", "NOT_DIGIT", "ALPHA", "NOT_ALPHA", "WHITESPACE", "NOT_WHITESPACE", "LINE_BREAK", "BRANCH" };
+  const char* types[] = { "UNUSED", "DOT", "BEGIN", "END", "QUESTIONMARK", "STAR", "PLUS", "CHAR", "CHAR_CLASS", "INV_CHAR_CLASS", "DIGIT", "NOT_DIGIT", "ALPHA", "NOT_ALPHA", "WHITESPACE", "NOT_WHITESPACE", "LINE_BREAK", "WORD_EDGE", "BRANCH" };
 
   int i;
   int j;
@@ -330,6 +335,10 @@ static int matchlinebreak(char c)
 {
   return c == '\n';
 }
+static int matchwordedge(char c)
+{
+  return !matchdigit(c) && !matchalpha(c); // 单词边界，非数字或字符
+}
 static int matchalphanum(char c)
 {
   return ((c == '_') || matchalpha(c) || matchdigit(c));
@@ -356,6 +365,7 @@ static int matchmetachar(char c, const char* str)
     case 's': return  matchwhitespace(c);
     case 'S': return !matchwhitespace(c);
     case 'n': return matchlinebreak(c);
+    case 'b': return matchwordedge(c);
     default:  return (c == str[0]);
   }
 }
@@ -412,6 +422,7 @@ static int matchone(regex_t p, char c)
     case WHITESPACE:     return  matchwhitespace(c);
     case NOT_WHITESPACE: return !matchwhitespace(c);
     case LINE_BREAK:     return matchlinebreak(c);
+    case WORD_EDGE:      return matchwordedge(c);
     default:             return  (p.ch == c);
   }
 }
@@ -536,7 +547,8 @@ static int matchpattern(regex_t* pattern, const char* text, int* matchlength)
       return (matchpattern(pattern, text) || matchpattern(&pattern[2], text));
     }
 */
-  (*matchlength)++;
+    (*matchlength)++;
+//    printf(1, "%d ", *matchlength);
   }
   while ((text[0] != '\0') && matchone(*pattern++, *text++));
 
