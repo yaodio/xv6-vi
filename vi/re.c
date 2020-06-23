@@ -23,7 +23,7 @@
  *   '\W'       Non-alphanumeric
  *   '\d'       Digits, [0-9]
  *   '\D'       Non-digits
- *
+ *   '\n'       line-break
  *
  */
 
@@ -40,7 +40,7 @@
 #define MAX_CHAR_CLASS_LEN      40    /* Max length of character-class buffer in.   */
 
 
-enum { UNUSED, DOT, BEGIN, END, QUESTIONMARK, STAR, PLUS, CHAR, CHAR_CLASS, INV_CHAR_CLASS, DIGIT, NOT_DIGIT, ALPHA, NOT_ALPHA, WHITESPACE, NOT_WHITESPACE, /* BRANCH */ };
+enum { UNUSED, DOT, BEGIN, END, QUESTIONMARK, STAR, PLUS, CHAR, CHAR_CLASS, INV_CHAR_CLASS, DIGIT, NOT_DIGIT, ALPHA, NOT_ALPHA, WHITESPACE, NOT_WHITESPACE, LINE_BREAK /* BRANCH */ };
 
 typedef struct regex_t
 {
@@ -63,6 +63,7 @@ static int matchone(regex_t p, char c);
 static int matchdigit(char c);
 static int matchalpha(char c);
 static int matchwhitespace(char c);
+static int matchlinebreak(char c);
 static int matchmetachar(char c, const char* str);
 static int matchrange(char c, const char* str);
 static int ismetachar(char c);
@@ -189,6 +190,7 @@ re_t re_compile(const char* pattern)
             case 'W': {    re_compiled[j].type = NOT_ALPHA;        } break;
             case 's': {    re_compiled[j].type = WHITESPACE;       } break;
             case 'S': {    re_compiled[j].type = NOT_WHITESPACE;   } break;
+            case 'n': {    re_compiled[j].type = LINE_BREAK;   } break;
 
             /* Escaped character, e.g. '.' or '$' */ 
             default:  
@@ -274,7 +276,7 @@ re_t re_compile(const char* pattern)
 
 void re_print(regex_t* pattern)
 {
-  const char* types[] = { "UNUSED", "DOT", "BEGIN", "END", "QUESTIONMARK", "STAR", "PLUS", "CHAR", "CHAR_CLASS", "INV_CHAR_CLASS", "DIGIT", "NOT_DIGIT", "ALPHA", "NOT_ALPHA", "WHITESPACE", "NOT_WHITESPACE", "BRANCH" };
+  const char* types[] = { "UNUSED", "DOT", "BEGIN", "END", "QUESTIONMARK", "STAR", "PLUS", "CHAR", "CHAR_CLASS", "INV_CHAR_CLASS", "DIGIT", "NOT_DIGIT", "ALPHA", "NOT_ALPHA", "WHITESPACE", "NOT_WHITESPACE", "LINE_BREAK", "BRANCH" };
 
   int i;
   int j;
@@ -324,6 +326,10 @@ static int matchwhitespace(char c)
 {
   return ((c == ' ') || (c == '\t') || (c == '\n') || (c == '\r') || (c == '\f') || (c == '\v'));
 }
+static int matchlinebreak(char c)
+{
+  return c == '\n';
+}
 static int matchalphanum(char c)
 {
   return ((c == '_') || matchalpha(c) || matchdigit(c));
@@ -336,7 +342,7 @@ static int matchrange(char c, const char* str)
 }
 static int ismetachar(char c)
 {
-  return ((c == 's') || (c == 'S') || (c == 'w') || (c == 'W') || (c == 'd') || (c == 'D'));
+  return ((c == 's') || (c == 'S') || (c == 'w') || (c == 'W') || (c == 'd') || (c == 'D') || (c == 'n'));
 }
 
 static int matchmetachar(char c, const char* str)
@@ -349,6 +355,7 @@ static int matchmetachar(char c, const char* str)
     case 'W': return !matchalphanum(c);
     case 's': return  matchwhitespace(c);
     case 'S': return !matchwhitespace(c);
+    case 'n': return matchlinebreak(c);
     default:  return (c == str[0]);
   }
 }
@@ -404,6 +411,7 @@ static int matchone(regex_t p, char c)
     case NOT_ALPHA:      return !matchalphanum(c);
     case WHITESPACE:     return  matchwhitespace(c);
     case NOT_WHITESPACE: return !matchwhitespace(c);
+    case LINE_BREAK:     return matchlinebreak(c);
     default:             return  (p.ch == c);
   }
 }
