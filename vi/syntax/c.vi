@@ -3,9 +3,9 @@ keyword	cLabel \bcase\b \bdefault\b
 keyword	cConditional \bif\b \belse\b \bswitch\b
 keyword	cRepeat \bwhile\b \bfor\b \bdo\b
 keyword cFunction \bmain\b \bprintf\b \bexit\b
-keyword cBrackets ( )
 keyword	cHead \s*#\s*include\b
 keyword	cType \bint\b \bchar\b
+keyword cBrackets ( )
 keyword cComments \/\*[\s\S]*\*\/ \/\/[^\n]*
 
 hi cStatement LIGHT_RED
