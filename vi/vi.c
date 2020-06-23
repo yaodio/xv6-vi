@@ -41,6 +41,7 @@ printline(int row, line *l)
 void
 printlines(int row, line *l)
 {
+  beautify();
   line *blank = newlines(NULL, 0);
 
   while(row < BASE_ROW){
@@ -269,8 +270,8 @@ insertmode(void)
   uchar c;
 
   // 关闭颜色
-  changecolor(UNCOLORED);
-  printlines(0, getprevline(cur.l, cur.row));
+//  changecolor(UNCOLORED);
+//  printlines(0, getprevline(cur.l, cur.row));
   showinsertmsg();
   // 循环读取1个字符，如果是ESC则结束
   while((c = readc()) != KEY_ESC){
@@ -333,8 +334,10 @@ insertmode(void)
         // 重新打印该行（以及之后的行）
         if(cur.l->n == MAX_COL && cur.l->paragraph)
           printlines(cur.row, cur.l);
-        else
+        else {
+          beautify();
           printline(cur.row, cur.l);
+        }
         tx.nchar++;
         curright(&cur);
         break;
@@ -344,8 +347,8 @@ insertmode(void)
   }
 
   // 恢复颜色
-  changecolor(COLORFUL);
-  printlines(0, getprevline(cur.l, cur.row));
+//  changecolor(COLORFUL);
+//  printlines(0, getprevline(cur.l, cur.row));
   return edit;
 }
 
@@ -481,19 +484,12 @@ main(int argc, char *argv[])
 {
   ushort *backup;         // 屏幕字符备份
   int nbytes;             // 屏幕字符备份内容的字节大小
-//  reg_test();
-//  hashmap_test();
 
-//  printf(2, "tx in main: %d", &tx);
   // 读取文件，并组织成文本结构体，读取异常则退出
   if(readtext(argc > 1 ? argv[1] : NULL, &tx) < 0){
     exit();
   }
   read_syntax();
-//  printf(1, "read end\n");
-//  printf(1, "beautify end\n");
-
-//  while(1) ;
 
   // 备份屏幕上的所有字符
   nbytes = getcurpos() * sizeof(backup[0]);

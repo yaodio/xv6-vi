@@ -1,11 +1,11 @@
-keyword	cStatement goto break return continue asm
-keyword	cLabel case default
-keyword	cConditional if else switch
-keyword	cRepeat while for do
-keyword cFunction \s?main\s*(+ \s?printf\s*(+ \s?exit\s*(+
+keyword	cStatement \bgoto\b \bbreak\b \breturn\b \bcontinue\b
+keyword	cLabel \bcase\b \bdefault\b
+keyword	cConditional \bif\b \belse\b \bswitch\b
+keyword	cRepeat \bwhile\b \bfor\b \bdo\b
+keyword cFunction \bmain\b \bprintf\b \bexit\b
 keyword cBrackets ( )
-keyword	cHead \s?#\s*include\s+
-keyword	cType \s?int\s+ \s?char\s+ \s?int\n
+keyword	cHead \s*#\s*include\b
+keyword	cType \bint\b \bchar\b
 keyword cComments \/\*[\s\S]*\*\/ \/\/[^\n]*
 
 hi cStatement LIGHT_RED
@@ -14,6 +14,6 @@ hi cConditional LIGHT_RED
 hi cRepeat LIGHT_RED
 hi cComments GREEN
 hi cFunction YELLOW
-hi cBrackets WHITE
+hi cBrackets BLUE
 hi cHead LIGHT_RED
 hi cType CYAN
