@@ -53,6 +53,19 @@ printlines(int row, line *l)
   }
 }
 
+// 释放多行字符的内存空间
+void
+freelines(line *l)
+{
+  line *next;
+  
+  while(l){
+    next = l->next;
+    free(l);
+    l = next;
+  }
+}
+
 // 从标准输入（键盘）读入1个字符
 uchar
 readc(void)
@@ -506,6 +519,6 @@ main(int argc, char *argv[])
   consflag(1, 1, 1);
   rcs(backup, nbytes);
   free(backup);
-  // TODO: free pointers in tx.
+  free(tx.head);
   exit();
 }
