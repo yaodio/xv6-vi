@@ -14,6 +14,6 @@ hi cConditional LIGHT_RED
 hi cRepeat LIGHT_RED
 hi cComments GREEN
 hi cFunction YELLOW
-hi cBrackets BLUE
+hi cBrackets LIGHT_BLUE
 hi cHead LIGHT_RED
 hi cType CYAN
