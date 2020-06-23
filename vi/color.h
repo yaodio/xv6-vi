@@ -20,10 +20,6 @@
 
 #define DEFAULT_COLOR   (BLACK << 4) | GREY     // 默认黑色背景灰色文本
 
-// 颜色模式
-#define UNCOLORED       0                       // 黑灰模式（不着色）
-#define COLORFUL        1                       // 彩色模式
-
 uint find_color(char*);
 
 // 函数声明
@@ -32,8 +28,6 @@ uchar getcolor(uchar tcolor, uchar bcolor);
 void paintl(line* l, uchar color);
 void get_color(char*);
 
-void reg_test();
-void hashmap_test();
 void read_syntax();
 void beautify();
 

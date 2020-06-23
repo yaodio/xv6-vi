@@ -14,7 +14,6 @@ text tx  = {NULL, NULL, NULL, 0, 0};                  // 全局文档变量
 cursor cur = {0, 0, NULL};                            // 全局光标变量
 line baseline = {{'\0'}, {'\0'}, 0, NULL, NULL, 0};   // 底线行
 
-void changecolor(int mode);
 int insertc(line *l, int i, uchar c);
 
 // 返回指定行往前推的第i个前驱，如果前驱少于i个，则返回最前面的那个前驱
@@ -413,8 +412,7 @@ editor(void)
   int edit = 0;
   uchar c;
 
-  // 打开彩色模式并打印文件的开头 SCREEN_HEIGHT-1 行
-  changecolor(COLORFUL);
+  // 打印文件的开头 SCREEN_HEIGHT-1 行
   printlines(0, tx.head);
   curto(&cur, 0, 0, tx.head);
 
@@ -510,28 +508,4 @@ main(int argc, char *argv[])
   free(backup);
   // TODO: free pointers in tx.
   exit();
-}
-
-// 切换颜色模式
-void
-changecolor(int mode)
-{
-  line *tmp;
-
-  switch(mode){
-    case COLORFUL:
-      // 彩色模式根据文件类型来着色
-      beautify();
-      break;
-
-    case UNCOLORED:
-    default:
-      // 使用默认颜色
-      tmp = tx.head;
-      while(tmp){
-        memset(tmp->colors, DEFAULT_COLOR, MAX_COL);
-        tmp = tmp->next;
-      }
-      break;
-  }
 }
