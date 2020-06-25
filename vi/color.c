@@ -7,6 +7,7 @@
 #include "stl.h"
 #include "../stat.h"
 #include "../fcntl.h"
+#include "vulib.h"
 
 extern struct text tx;
 map_t regex_map, colormap;
@@ -174,24 +175,19 @@ beautify(void)
      // 编译正则
      creg = (char*) reg->data;
      re_t pattern = re_compile(creg); // FIXME: 应当把正则编译放在文件读取阶段
-//     printf(1, "%s ", creg);
      list *match_length = new_list();
      list *matches = re_match_all(pattern, chs, match_length); // 匹配正则
-//     printf(1, "matched %d %d", matches, match_length);
      // 拿到 hashmap 中对应的颜色
      error = hashmap_get(colormap, (char*) key->data, (void*)(&syntax_color));
      if (error != MAP_OK) color_f = DEFAULT_COLOR; // 找不到，用默认色
      // 是数字（十进制）就直接放进去，否则查颜色表
      else color_f = getcolor((syntax_color[0] >= '0' && syntax_color[0] <= '9') ?
          atoi(syntax_color) : find_color(syntax_color), BLACK);
-//     printf(1, "colored ");
      // 遍历所有匹配到的字符的 index，改颜色
      for (idx = matches->head, jdx = match_length->head; (idx != NULL && jdx != NULL);
       idx = idx->next, jdx = jdx->next) {
        memset(colors + idx->data, color_f, *(int*)(jdx->data) * sizeof(colors[0])); // 把idx后面jdx长度的字符颜色都改一下
-//       printf(1, "|%c...%c|", chs[idx->data], chs[idx->data + idx->data + *(int*)(jdx->data)-1]);
      }
-//     printf(1, "\n");
      free(match_length);
      free(matches);
    }
@@ -210,4 +206,72 @@ beautify(void)
 
   free(chs);
   free(colors);
+}
+
+char logoc[] = "              __           _\n"
+               "__  ____   __/ /_   __   _(_)\n"
+               "\\ \\/ /\\ \\ / / '_ \\  \\ \\ / / |\n"
+               " >  <  \\ V /| (_) |  \\ V /| |\n"
+               "/_/\\_\\  \\_/  \\___/    \\_/ |_|\n"
+               "\n";
+char helpc[] = "https://gitee.com/yaodio/xv6   *STAR US!\n"
+               "a simple editor for xv6\n"
+               "with some commands similar to [vi]\n"
+               "[i] insert before         \n"
+               "[a] append after          \n"
+               "[:] baseline mode         \n"
+               "[:w] save file            \n"
+               "[:q] quit                 \n"
+               "[:q!] force quit          \n"
+               "[:wq] save and quit       \n"
+               "[:h] help (here)          \n"
+               "[esc] quit baseline mode  \n"
+               "\n"
+               "[q (here)] quit help mode \n";
+
+line* help()
+{
+  line* l = newlines(logoc, strlen(logoc));
+  uint len, margin;
+  int i, j = 2, top = 0;
+  int color_len = sizeof(color_name) / sizeof(color_name[0]);
+  // 垂直居中
+  line* p = NULL; char tmp[MAX_COL];
+  for (p = l;; p = p->next, j+=1, top++) {
+    len = p->n;
+    if (len > 0) {
+      margin = (MAX_COL - len) / 2;
+      strcpy(tmp, p->chs);
+      for (i = 0; i < len; i++)
+        p->chs[margin + i] = tmp[i];
+      for (i = 0; i < margin; i++)
+        p->chs[i] = ' ';
+      p->n = margin + len;
+      paintl(p, color_int[j % color_len]); // 上渐变色
+    }
+    if (p->next == NULL) break;
+  }
+  // 添加 help text
+  line* help_l = newlines(helpc, strlen(helpc));
+  p->next = help_l; help_l->prev = p;
+  // help_text 垂直居中
+  for (p = help_l; p != NULL; p = p->next) {
+    len = p->n;
+    if (len > 0) {
+      margin = (MAX_COL - len) / 2;
+      strcpy(tmp, p->chs);
+      for (i = 0; i < len; i++)
+        p->chs[margin + i] = tmp[i];
+      for (i = 0; i < margin; i++)
+        p->chs[i] = ' ';
+      p->n = margin + len;
+    }
+  }
+  // logo 水平居中
+  top = (SCREEN_HEIGHT - top) / 2 - 4;
+  while (top--) {
+    l->prev = newlines(NULL, 0);
+    l->prev->next = l; l = l->prev;
+  }
+  return l;
 }

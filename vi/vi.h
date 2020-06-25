@@ -31,5 +31,8 @@ typedef struct text {
 void printline(int row, line *l);
 void printlines(int row, line *l);
 line* getprevline(line *l, int i);
+void help_mode();
+
+enum mode_type { NORMAL_MODE, HELP_MODE };
 
 #endif // VI_XV6_VI_H

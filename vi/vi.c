@@ -10,9 +10,10 @@
 #include "../kbd.h"
 
 // 多文件共享全局变量不能在头文件里定义
-text tx  = {NULL, NULL, NULL, 0, 0};                  // 全局文档变量
+text tx  = {NULL, NULL, 0, 0};                  // 全局文档变量
 cursor cur = {0, 0, NULL};                            // 全局光标变量
 line baseline = {{'\0'}, {'\0'}, 0, NULL, NULL, 0};   // 底线行
+enum mode_type mode = NORMAL_MODE;
 
 int insertc(line *l, int i, uchar c);
 
@@ -40,7 +41,7 @@ printline(int row, line *l)
 void
 printlines(int row, line *l)
 {
-  beautify();
+  if (mode == NORMAL_MODE) beautify();
   line *blank = newlines(NULL, 0);
 
   while(row < BASE_ROW){
@@ -50,19 +51,6 @@ printlines(int row, line *l)
     }else{
       printline(row++, blank);
     }
-  }
-}
-
-// 释放多行字符的内存空间
-void
-freelines(line *l)
-{
-  line *next;
-  
-  while(l){
-    next = l->next;
-    free(l);
-    l = next;
   }
 }
 
@@ -497,9 +485,8 @@ main(int argc, char *argv[])
   int nbytes;             // 屏幕字符备份内容的字节大小
 
   // 读取文件，并组织成文本结构体，读取异常则退出
-  if(readtext(argc > 1 ? argv[1] : NULL, &tx) < 0){
+  if(readtext(argc > 1 ? argv[1] : NULL, &tx) < 0)
     exit();
-  }
   read_syntax();
 
   // 备份屏幕上的所有字符
@@ -513,6 +500,7 @@ main(int argc, char *argv[])
   // 清屏，关闭控制台的flag，然后进入编辑器
   cls();
   consflag(0, 0, 0);
+  if (!tx.exist) help_mode();
   editor();
 
   // 退出编辑器，开启控制台的flag，并还原屏幕上的所有字符
@@ -521,4 +509,46 @@ main(int argc, char *argv[])
   free(backup);
   free(tx.head);
   exit();
+}
+
+void
+help_mode()
+{
+  mode = HELP_MODE; // 关闭 printlines 中的 beautify
+  line* old_lines = tx.head; // 保存旧的 lines
+  cursor oldcur = cur; // 保存光标
+
+  tx.head = help(); // 重置 lines 为 help page
+  printlines(0, tx.head);
+  curto(&cur, 0, 0, tx.head);
+  uchar c;
+  while (1)
+  {
+    c = readc();
+    switch(c){
+      case KEY_UP:
+        curup(&cur);
+        break;
+      case KEY_DN:
+        curdown(&cur);
+        break;
+      case KEY_LF:
+        curleft(&cur);
+        break;
+      case KEY_RT:
+        curright(&cur);
+        break;
+      case 'q':
+        goto help_mode_end;
+      default:
+        break;
+    }
+  }
+help_mode_end:
+  freelines(tx.head); // free help page
+  tx.head = old_lines; // 恢复旧的 lines
+  cur = oldcur;
+  showcur(&cur);
+  printlines(0, tx.head);
+  mode = NORMAL_MODE;
 }

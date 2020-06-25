@@ -5,6 +5,7 @@
 
 line* newlines(uchar *chs, uint n);
 void setline(line *l, uchar *chs, int n, uchar color);
+void freelines(line *l);
 void cleanline(line *l);
 
 int readtext(char *path, struct text* txx);

@@ -34,6 +34,9 @@ baselinehandler(line* baseline, int edit)
     return savefile(baseline) ? QUIT : ERROR;
   } else if (startswidth(baseline->chs, ":w", 2)){
     return savefile(baseline) ? SAVE : ERROR;
+  } else if (startswidth(baseline->chs, ":h", 2)) {
+    help_mode();
+    return NOCHANGE;
   }
   // TODO: 添加其他命令
   else {

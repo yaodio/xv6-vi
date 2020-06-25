@@ -30,5 +30,6 @@ void get_color(char*);
 
 void read_syntax();
 void beautify();
+line* help();
 
 #endif // VI_XV6_COLOR_H

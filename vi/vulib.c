@@ -52,6 +52,19 @@ setline(line *l, uchar *chs, int n, uchar color)
   l->n = n;
 }
 
+// 释放多行字符的内存空间
+void
+freelines(line *l)
+{
+  line *next;
+
+  while(l){
+    next = l->next;
+    free(l);
+    l = next;
+  }
+}
+
 void
 cleanline(line *l)
 {
