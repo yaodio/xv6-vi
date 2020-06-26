@@ -8,7 +8,7 @@ line    baseline  = {{'\0'}, {'\0'}, 0, NULL, NULL, 0};   // 底线行
 static ushort *backup;    // 屏幕字符备份
 static int nbytes;        // 屏幕字符备份内容的字节大小
 
-// 主程序（命令模式）
+// 主程序（预览模式）
 void
 vi(void)
 {
