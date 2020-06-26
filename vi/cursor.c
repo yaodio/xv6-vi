@@ -190,13 +190,13 @@ showcur(cursor *cur)
 {
   int pos;
   // 计算光标的位置
-  pos = SCREEN_WIDTH * cur->row + cur->col;
+  pos = MAX_COL * cur->row + cur->col;
 
   // 光标所在行为倒数第二行（底线行的上一行）的末尾（光标所在列为MAX_COL）
   // 需要整个屏幕内容下移一行打印
   if(cur->col == MAX_COL && cur->row == BASE_ROW-1){
     printlines(0, getprevline(cur->l, cur->row)->next, 1);
-    pos -= SCREEN_WIDTH;
+    pos -= MAX_COL;
     cur->row--;
   }
 

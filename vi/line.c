@@ -11,7 +11,7 @@ printline(int row, line *l, int refreshcolor)
   if (refreshcolor)
     beautify();
 
-  pos = row * SCREEN_WIDTH;
+  pos = row * MAX_COL;
   for(i = 0; i < MAX_COL; i++)
     putcc(pos+i, paintc(l->chs[i], l->colors[i]));
 }

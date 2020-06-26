@@ -5,16 +5,6 @@ extern cursor cur;
 extern line baseline;
 
 int
-startswidth(uchar *chs, uchar *cmd, int n)
-{
-  int i;
-  for(i = 0; i < n; i++)
-    if(chs[i] != cmd[i])
-      return 0;
-  return 1;
-}
-
-int
 baselinehandler(line* baseline, int edit)
 {
   if(startswidth(baseline->chs, ":q!", 3)) {
@@ -69,42 +59,12 @@ savefile(line* baseline)
   return 1;
 }
 
-int
-int2char(char* res, int xx)
-{
-  static char digits[] = "0123456789";
-  char buf[16];
-  int i, j, neg;
-  uint x;
-
-  neg = 0;
-  if(xx < 0){
-    neg = 1;
-    x = -xx;
-  } else {
-    x = xx;
-  }
-
-  i = 0;
-  do{
-    buf[i++] = digits[x % 10];
-  }while((x /= 10) != 0);
-  if(neg)
-    buf[i++] = '-';
-
-  j = 0;
-  while(--i >= 0)
-    res[j++] = buf[i];
-
-  return j;
-}
-
 void
 showpathmsg(void)
 {
   int i = 0;
   int len = 0;
-  int pos = SCREEN_WIDTH * BASE_ROW;
+  int pos = MAX_COL * BASE_ROW;
   uchar base[MAX_COL];
   char* filename;
   
@@ -146,7 +106,7 @@ showinsertmsg(void)
 {
   int i;
   uchar base[MAX_COL];
-  int pos = SCREEN_WIDTH * BASE_ROW;
+  int pos = MAX_COL * BASE_ROW;
 
   memset(base, '\0', MAX_COL);
   memmove(base, "-- INSERT --", 12);
