@@ -1,7 +1,13 @@
+/*
+ * b.c
+ * This is a test file
+ */
+
 #include "types.h"
 #include "stat.h"
 #include "user.h"
 
+// main in b.c
 int 
 main(int argc, char *argv[])
 {
