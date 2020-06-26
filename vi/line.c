@@ -110,6 +110,15 @@ getprevline(line *l, int i)
   return l;
 }
 
+// 返回指定行往后推的第i个后继，如果后继少于i个，则返回最后面的那个后继
+line*
+getnextline(line *l, int i)
+{
+  while(i-- > 0 && l->next != NULL)
+    l = l->next;
+  return l;
+}
+
 // 在指定行的第i个字符处换行
 void
 breakline(line *l, int i)

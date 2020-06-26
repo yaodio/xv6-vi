@@ -50,8 +50,6 @@ vi(void)
       // 在光标所在字符后进入编辑模式
       case 'a':
         curright(&cur);
-        edit |= editmode();
-        break;
       // 在光标所在字符处进入编辑模式
       case 'i':
         edit |= editmode();
@@ -78,7 +76,30 @@ vi(void)
         }
         break;
 
-        // TODO: 添加其他case实现其他功能
+      /**         常用功能键         **/
+      // 移动到行首
+      case '0':
+        curto(&cur, cur.row, 0, cur.l);
+        break;
+      // 移动到行尾
+      case '$':
+        curto(&cur, cur.row, cur.l->n, cur.l);
+        break;
+      // 移到屏幕第一行的行首
+      case 'H':
+        curto(&cur, 0, 0, getprevline(cur.l, cur.row));
+        break;
+      // 移到底线行上一行的行首
+      case 'L':
+        curto(&cur, BASE_ROW-1, 0, getnextline(cur.l, BASE_ROW-1-cur.row));
+        break;
+      // 移动到文档末尾
+      case 'G':
+        while(curdown(&cur))
+          ;
+        break;
+      
+      // TODO: 添加其他case实现其他功能
       default:
         break;
     }

@@ -156,30 +156,29 @@ editmode(void)
   int tab;
   uchar c;
 
-  // 关闭颜色
-//  changecolor(UNCOLORED);
-//  printlines(0, getprevline(cur.l, cur.row));
   showinsertmsg();
   // 循环读取1个字符，如果是ESC则结束
   while((c = readc()) != KEY_ESC){
     switch(c){
+      /**         方向键操作         **/
       // 方向键上
       case KEY_UP:
         curup(&cur);
         break;
-        // 方向键下
+      // 方向键下
       case KEY_DN:
         curdown(&cur);
         break;
-        // 方向键左
+      // 方向键左
       case KEY_LF:
         curleft(&cur);
         break;
-        // 方向键右
+      // 方向键右
       case KEY_RT:
         curright(&cur);
         break;
 
+      /**          删除操作          **/
       // 删除光标处前一个位置的字符
       case KEY_BACKSPACE:
         if(curleft(&cur)){
@@ -193,10 +192,12 @@ editmode(void)
         printlines(cur.row, cur.l, 1);
         break;
 
+      /**          换行操作          **/
       case '\n':
         breakline(cur.l, cur.col);
         break;
 
+      /**         制表符操作         **/
       case '\t':
         tab = TAB_WIDTH;
         while(tab--){
@@ -215,6 +216,7 @@ editmode(void)
           curright(&cur);
         break;
 
+      /**        默认插入操作        **/
       default:
         // 在光标处插入字符c
         edit |= insertc(cur.l, cur.col, c);
@@ -232,8 +234,5 @@ editmode(void)
   showinsertmsg();
   }
 
-  // 恢复颜色
-//  changecolor(COLORFUL);
-//  printlines(0, getprevline(cur.l, cur.row));
   return edit;
 }
