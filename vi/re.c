@@ -28,10 +28,6 @@
  */
 
 
-
-#include "../user.h"
-#include "re.h"
-#include "stl.h"
 #include "vi.h"
 
 /* Definitions: */

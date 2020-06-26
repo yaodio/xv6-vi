@@ -1,9 +1,6 @@
 #ifndef VI_XV6_BASELINE_H
 #define VI_XV6_BASELINE_H
 
-#include "vi.h"
-#include "color.h"
-
 #define MAX_PATH_CHAR   35
 #define COOR_IDX        60
 
@@ -18,5 +15,6 @@ int baselinehandler(line*, int);
 int savefile(line*);
 void showpathmsg(void);
 void showinsertmsg(void);
+int baselinemode(int edit);
 
 #endif //VI_XV6_BASELINE_H

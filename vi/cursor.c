@@ -1,8 +1,4 @@
-#include "cursor.h"
-#include "color.h"
 #include "vi.h"
-
-#include "../user.h"
 
 // 光标下移, 无法移动则返回0
 int
@@ -35,7 +31,7 @@ curdown(cursor *cur)
 
     // 光标移到了底线行，需要整个屏幕内容下移一行打印
     if(cur->row >= BASE_ROW){
-      printlines(0, getprevline(cur->l, cur->row)->next);
+      printlines(0, getprevline(cur->l, cur->row)->next, 1);
       cur->row = BASE_ROW - 1;
     }
   }
@@ -72,7 +68,7 @@ curup(cursor *cur)
     // 需要屏幕上移一行打印
     if(cur->row < 0){
       cur->row = 0;
-      printlines(0, cur->l);
+      printlines(0, cur->l, 1);
     }
   }
   showcur(cur);
@@ -116,7 +112,7 @@ curleft(cursor *cur)
   // 需要屏幕上移一行打印
   if(cur->row < 0){
     cur->row = 0;
-    printlines(0, cur->l);
+    printlines(0, cur->l, 1);
   }
   showcur(cur);
   return 1;
@@ -181,7 +177,7 @@ curright(cursor *cur)
 
   // 光标移到了底线行，需要整个屏幕内容下移一行打印
   if(cur->row >= BASE_ROW){
-    printlines(0, getprevline(cur->l, cur->row)->next);
+    printlines(0, getprevline(cur->l, cur->row)->next, 1);
     cur->row = BASE_ROW - 1;
   }
   showcur(cur);
@@ -199,7 +195,7 @@ showcur(cursor *cur)
   // 光标所在行为倒数第二行（底线行的上一行）的末尾（光标所在列为MAX_COL）
   // 需要整个屏幕内容下移一行打印
   if(cur->col == MAX_COL && cur->row == BASE_ROW-1){
-    printlines(0, getprevline(cur->l, cur->row)->next);
+    printlines(0, getprevline(cur->l, cur->row)->next, 1);
     pos -= SCREEN_WIDTH;
     cur->row--;
   }

@@ -20,9 +20,8 @@
 
 #define DEFAULT_COLOR   (BLACK << 4) | GREY     // 默认黑色背景灰色文本
 
-uint find_color(char*);
-
 // 函数声明
+uint find_color(char*);
 ushort paintc(uchar c, uchar color);
 uchar getcolor(uchar tcolor, uchar bcolor);
 void paintl(line* l, uchar color);
@@ -30,6 +29,5 @@ void get_color(char*);
 
 void read_syntax();
 void beautify();
-line* help();
 
 #endif // VI_XV6_COLOR_H

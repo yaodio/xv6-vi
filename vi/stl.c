@@ -1,8 +1,4 @@
-#include "stl.h"
 #include "vi.h"
-#include "vulib.h"
-
-#include "../user.h"
 
 struct list* new_list() {
   struct list* lst = (struct list*) malloc(sizeof(list));

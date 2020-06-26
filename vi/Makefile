@@ -1,4 +1,8 @@
 VI_OBJS = \
+	vi/line.o\
+	vi/text.o\
+	vi/help.o\
+	vi/editmode.o\
 	vi/vi.o\
 	vi/vulib.o\
 	vi/baseline.o\

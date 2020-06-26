@@ -1,8 +1,6 @@
 #ifndef VI_XV6_CURSOR_H
 #define VI_XV6_CURSOR_H
 
-#include "vi.h"
-
 // 光标结构体
 typedef struct cursor {
     int row;                    // 光标所在行

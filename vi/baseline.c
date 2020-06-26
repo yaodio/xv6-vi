@@ -1,13 +1,8 @@
 #include "vi.h"
-#include "cursor.h"
-#include "baseline.h"
-#include "vulib.h"
-
-#include "../types.h"
-#include "../user.h"
 
 extern text tx;
 extern cursor cur;
+extern line baseline;
 
 int
 startswidth(uchar *chs, uchar *cmd, int n)
@@ -35,8 +30,9 @@ baselinehandler(line* baseline, int edit)
   } else if (startswidth(baseline->chs, ":w", 2)){
     return savefile(baseline) ? SAVE : ERROR;
   } else if (startswidth(baseline->chs, ":h", 2)) {
-    cls();
-    help_mode();
+    help();
+    printlines(0, getprevline(cur.l, cur.row), 1);
+    showcur(&cur);
     return NOCHANGE;
   }
   // TODO: 添加其他命令
@@ -64,7 +60,7 @@ savefile(line* baseline)
     strcpy(tx.path, path);
   }
 
-  if(writetext(tx.path, tx.head) < 0){
+  if(writetext(&tx) < 0){
     setline(baseline, "Failed to save", 14, ERROR_COLOR);
     return 0;
   }
@@ -163,4 +159,57 @@ showinsertmsg(void)
 
   for(i = 0; i < MAX_COL; i++)
     putcc(pos+i, paintc(base[i], MSG_COLOR));
+}
+
+// 底线模式
+int
+baselinemode(int edit)
+{
+  int code = NOCHANGE;
+  cursor oldcur = cur; // 保存光标
+  setline(&baseline, ":", 1, CMD_COLOR);
+
+  curto(&cur, BASE_ROW, 1, &baseline);
+  printline(BASE_ROW, &baseline, 0);
+
+  uchar c;
+  // 循环读取1个字符，如果是ESC则结束
+  while((c = readc()) != KEY_ESC){
+    // 按下换行，处理命令
+    if (c == '\n'){
+      code = baselinehandler(&baseline, edit);
+      break;
+    }
+    // 没有字符了且按下了退格
+    if ((c == KEY_BACKSPACE && !curleft(&cur))) 
+      break; 
+
+    switch (c) {
+      // 方向键左和上，光标左移
+      case KEY_LF:
+      case KEY_UP:
+        curleft(&cur);
+        break;
+        // 方向键右和下，光标右移
+      case KEY_RT:
+      case KEY_DN:
+        curright(&cur);
+        break;
+      // 删除光标处前一个位置的字符
+      case KEY_BACKSPACE:
+        deletec(cur.l, cur.col);
+        printline(cur.row, cur.l, 0);
+        break;
+      default:
+        insertc(cur.l, cur.col, c);
+        printline(cur.row, cur.l, 0);
+        curright(&cur);
+    }
+  }
+
+  // 恢复光标
+  cur = oldcur;
+  showcur(&cur);
+
+  return code;
 }
