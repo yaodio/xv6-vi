@@ -65,6 +65,7 @@ freelines(line *l)
   }
 }
 
+// 清空指定行的内容，颜色变为DEFAULT_COLOR
 void
 cleanline(line *l)
 {
