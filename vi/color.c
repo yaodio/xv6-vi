@@ -68,7 +68,7 @@ read_syntax(void)
   if (i < 0) return;
   char *vi_file = malloc((strlen(tx.path) - i + 3) * sizeof(char));
   memmove(vi_file, tx.path + i + 1, strlen(tx.path) - i - 1);
-  memmove(vi_file + i, ".vi\0", 4);
+  memmove(vi_file + strlen(tx.path) - i - 1, ".vi\0", 4);
 
   int fd;                 // 文件描述符
   struct stat st;         // 文件信息
