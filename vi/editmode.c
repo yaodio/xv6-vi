@@ -62,11 +62,11 @@ deletec(line *l, int i)
   if(l->paragraph == 0){
     // 删除的是空行
     if(l->n == 0){
-      // 文档唯一的1行，此时文档内容为空，无法删除
-      if(l->prev == NULL && l->next == NULL)
+      // 文档最后一行且内容为空，不删除
+      if(l->next == NULL)
         return 0;
 
-      // 删除的是文档第一行
+      // 删除的是文档第一行（且不是最后一行）
       if(l->prev == NULL)
         tx.head = l->next;
       else
