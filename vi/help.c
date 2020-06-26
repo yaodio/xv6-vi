@@ -3,28 +3,29 @@
 extern uchar colorname[16][32];
 extern uint colorint[16];
 
-static char logoc[] = "              __          _\n"
-               "__  ____   __/ /_   __   _(_)\n"
-               "\\ \\/ /\\ \\ / / '_ \\  \\ \\ / / |\n"
-               " >  <  \\ V /| (_) |  \\ V /| |\n"
-               "/_/\\_\\  \\_/  \\___/    \\_/ |_|\n"
-               "\n";
+static char logoc[] = 
+                "              __          _\n"
+                "__  ____   __/ /_   __   _(_)\n"
+                "\\ \\/ /\\ \\ / / '_ \\  \\ \\ / / |\n"
+                " >  <  \\ V /| (_) |  \\ V /| |\n"
+                "/_/\\_\\  \\_/  \\___/    \\_/ |_|\n";
 
 static char helpc[] = 
-                "a simple editor for xv6\n"
-                "with some commands similar to [vi]\n"
+                "a simple editor for xv6 similar to Linux vi/vim\n"
                 "\n"
-                "[i] insert here (edit mode)    \n"
-                "[a] append after (edit mode)   \n"
-                "[:] switch to baseline mode    \n"
-                "[:w] save file                 \n"
-                "[:q] quit                      \n"
-                "[:q!] force to quit            \n"
-                "[:wq] save and quit            \n"
-                "[:h] open help (this page)     \n"
-                "[ESC] back to view mode        \n"
-                "\n"
-                "press [q] to quit this help page \n"
+                "---------------------------------------------------\n"
+                "| [i]          insert here (switch to edit mode)  |\n"
+                "| [a]          append after (switch to edit mode) |\n"
+                "| [:]          switch to baseline mode            |\n"
+                "| [:w (path)]  save file (to path)                |\n"
+                "| [:q]         quit vi                            |\n"
+                "| [:q!]        force to quit                      |\n"
+                "| [:wq (path)] save and quit                      |\n"
+                "| [:h]         open help (this page)              |\n"
+                "| [ESC]        back to view mode                  |\n"
+                "|                                                 |\n"
+                "|        press [q] to quit this help page         |\n"
+                "---------------------------------------------------\n"
                 "\n"
                 "https://gitee.com/yaodio/xv6 *STAR US!\n"
                 "Copyright (c) 2020 @yaodio, @sexy_boy, @stephenark\n";
@@ -71,7 +72,7 @@ makehelplines(void)
     }
   }
   // logo 水平居中
-  top = (SCREEN_HEIGHT - top) / 2 - 9;
+  top = (SCREEN_HEIGHT - top) / 2 - 10;
   while (top--) {
     l->prev = newlines(NULL, 0);
     l->prev->next = l; l = l->prev;
