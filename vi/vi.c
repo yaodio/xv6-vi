@@ -487,6 +487,7 @@ main(int argc, char *argv[])
   // 读取文件，并组织成文本结构体，读取异常则退出
   if(readtext(argc > 1 ? argv[1] : NULL, &tx) < 0)
     exit();
+  // 根据文件类型准备正则规则
   read_syntax();
 
   // 备份屏幕上的所有字符
@@ -500,10 +501,10 @@ main(int argc, char *argv[])
   // 清屏，关闭控制台的flag，然后进入编辑器
   cls();
   consflag(0, 0, 0);
-  if (!tx.exist) help_mode();
+  if (argc <= 1) help_mode();
   editor();
 
-  // 退出编辑器，开启控制台的flag，并还原屏幕上的所有字符
+  // 退出编辑器，开启控制台的flag，并还原屏幕上的所有字符，释放内存
   consflag(1, 1, 1);
   rcs(backup, nbytes);
   free(backup);

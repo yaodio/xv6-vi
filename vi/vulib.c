@@ -84,8 +84,11 @@ readtext(char *path, struct text* txx)
 
   txx->path = (char*)malloc(MAX_COL);
   memset(txx->path, '\0', MAX_COL);
+  // 输入了路径
+  if(path != NULL)
+    strcpy(txx->path, path);
   // 路径存在且可被打开
-  if(path != NULL && (fd = open(path, O_RDONLY)) >= 0){
+  if((fd = open(path, O_RDONLY)) >= 0){
     // 获取文件信息失败则退出
     if(fstat(fd, &st) < 0){
       printf(2, "editor: cannot stat %s\n", path);
@@ -107,9 +110,8 @@ readtext(char *path, struct text* txx)
 //    printf(1, "open file succeed\n%s", chs);
     close(fd); // 与open匹配
     txx->exist = 1;
-    strcpy(txx->path, path);
   }
-    // 路径不存在
+  // 路径不存在
   else{
     nbytes = 0;
     chs = NULL;
