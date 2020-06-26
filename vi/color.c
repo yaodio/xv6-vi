@@ -268,7 +268,7 @@ line* help()
     }
   }
   // logo 水平居中
-  top = (SCREEN_HEIGHT - top) / 2 - 4;
+  top = (SCREEN_HEIGHT - top) / 2 - 8;
   while (top--) {
     l->prev = newlines(NULL, 0);
     l->prev->next = l; l = l->prev;
