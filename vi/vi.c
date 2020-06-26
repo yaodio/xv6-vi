@@ -57,6 +57,10 @@ vi(void)
 
       case ':':
         switch(baselinemode(edit)) {
+          case HELP:
+            printlines(0, getprevline(cur.l, cur.row), 1);
+            showcur(&cur);
+            break;
           case SAVE:
             edit = 0;
             break;

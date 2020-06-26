@@ -21,9 +21,7 @@ baselinehandler(line* baseline, int edit)
     return savefile(baseline) ? SAVE : ERROR;
   } else if (startswidth(baseline->chs, ":h", 2)) {
     help();
-    printlines(0, getprevline(cur.l, cur.row), 1);
-    showcur(&cur);
-    return NOCHANGE;
+    return HELP;
   }
   // TODO: 添加其他命令
   else {

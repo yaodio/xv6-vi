@@ -10,20 +10,24 @@ static char logoc[] = "              __          _\n"
                "/_/\\_\\  \\_/  \\___/    \\_/ |_|\n"
                "\n";
 
-static char helpc[] = "https://gitee.com/yaodio/xv6   *STAR US!\n"
-               "a simple editor for xv6\n"
-               "with some commands similar to [vi]\n"
-               "[i] insert before         \n"
-               "[a] append after          \n"
-               "[:] baseline mode         \n"
-               "[:w] save file            \n"
-               "[:q] quit                 \n"
-               "[:q!] force quit          \n"
-               "[:wq] save and quit       \n"
-               "[:h] help (here)          \n"
-               "[esc] quit baseline mode  \n"
-               "\n"
-               "[q (here)] quit help mode \n";
+static char helpc[] = 
+                "a simple editor for xv6\n"
+                "with some commands similar to [vi]\n"
+                "\n"
+                "[i] insert here (edit mode)           \n"
+                "[a] append after (edit mode)          \n"
+                "[:] switch to baseline mode           \n"
+                "[:w] save file                        \n"
+                "[:q] quit                             \n"
+                "[:q!] force to quit                   \n"
+                "[:wq] save and quit                   \n"
+                "[:h] open help (this page)            \n"
+                "[esc] quit baseline mode or edit mode \n"
+                "\n"
+                "press [q] to quit this help page \n"
+                "\n"
+                "https://gitee.com/yaodio/xv6 *STAR US!\n"
+                "Copyright (c) 2020 @yaodio, @sexy_boy, @stephenark\n";
 
 static text helptx = {NULL, NULL, 0, 0};
 
@@ -67,7 +71,7 @@ makehelplines(void)
     }
   }
   // logo 水平居中
-  top = (SCREEN_HEIGHT - top) / 2 - 8;
+  top = (SCREEN_HEIGHT - top) / 2 - 9;
   while (top--) {
     l->prev = newlines(NULL, 0);
     l->prev->next = l; l = l->prev;

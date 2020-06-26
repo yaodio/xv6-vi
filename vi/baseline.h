@@ -9,7 +9,7 @@
 #define ERROR_COLOR     getcolor(YELLOW, RED)
 
 // 底线模式返回的状态
-enum { NOCHANGE, SAVE, QUIT, ERROR };
+enum { NOCHANGE, HELP, SAVE, QUIT, ERROR };
 
 void showpathmsg(void);
 void showinsertmsg(void);
