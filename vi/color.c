@@ -1,8 +1,8 @@
 #include "vi.h"
 
-extern struct text tx;
+extern text tx;
 map_t regex_map, colormap;
-list* syntax_keys;
+list *syntax_keys;
 
 uchar colorname[16][32] = {"BLACK", "BLUE", "GREEN", "CYAN", "RED", "PURPLE", "BROWN", "GREY", "DARK_GREY", "LIGHT_BLUE",
                           "LIGHT_GREEN", "LIGHT_CYAN", "LIGHT_RED", "LIGHT_PURPLE", "YELLOW", "WHITE"};
@@ -22,16 +22,16 @@ uchar getcolor(uchar tcolor, uchar bcolor)
   return (bcolor << 4) | tcolor;
 }
 
-// 给一行上色
+// 给一行设置同样的颜色
 void
-paintl(line* l, uchar color)
+paintl(line *l, uchar color)
 {
   memset(l->colors, color, MAX_COL);
 }
 
 // 返回下一个单词（空格分开）
 char*
-sscanf (uchar* chs, int* offset)
+sscanf(uchar *chs, int *offset)
 {
   // 跳过空格和换行以免行开头有空格
   while (*(chs+*offset) != '\0' &&
@@ -56,7 +56,7 @@ sscanf (uchar* chs, int* offset)
 }
 
 void
-read_syntax ()
+read_syntax(void)
 {
   regex_map = hashmap_new();
   colormap = hashmap_new();
@@ -115,7 +115,7 @@ read_syntax_end:
 
 // 返回所有行拼接的字符串（不含换行）
 char*
-concat_file ()
+concat_file(void)
 {
   int line_num = 0;
   for (line* l = tx.head; l != NULL; l = l->next)
@@ -135,7 +135,7 @@ concat_file ()
 }
 
 uint
-find_color(char* cname)
+find_color(char *cname)
 {
   int l = sizeof(colorname) / sizeof(colorname[0]);
   for (int i = 0; i < l; i++) {
@@ -153,7 +153,7 @@ beautify(void)
   if (syntax_keys->size == 0) return;
   char* chs = concat_file(); // 把所有行的字符合成到一起
   uint* colors = malloc(strlen(chs) * sizeof(uint));
-  memset(colors, (BLACK << 4) | WHITE, strlen(chs) * sizeof(uint));
+  memset(colors, getcolor(WHITE, BLACK), strlen(chs) * sizeof(uint));
   int error; uint color_f; int i, j;
   char* syntax_color; // 存放 hashmap 中查到的颜色字符串
   int_node *idx, *jdx, *reg, *key;
