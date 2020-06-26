@@ -35,6 +35,7 @@ baselinehandler(line* baseline, int edit)
   } else if (startswidth(baseline->chs, ":w", 2)){
     return savefile(baseline) ? SAVE : ERROR;
   } else if (startswidth(baseline->chs, ":h", 2)) {
+    cls();
     help_mode();
     return NOCHANGE;
   }
