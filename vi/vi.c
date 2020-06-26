@@ -28,33 +28,36 @@ vi(void)
     showpathmsg();
     c = readc();
     switch(c){
+      /**         方向键操作         **/
+      // 方向键上
+      case KEY_UP: 
+        curup(&cur);
+        break;
+      // 方向键下
+      case KEY_DN:
+        curdown(&cur);
+        break;
+      // 方向键左
+      case KEY_LF:
+        curleft(&cur);
+        break;
+      // 方向键右
+      case KEY_RT:
+        curright(&cur);
+        break;
+
+      /**    进入编辑模式的2种途径     **/
       // 在光标所在字符后进入编辑模式
       case 'a':
         curright(&cur);
         edit |= editmode();
         break;
-        // 在光标所在字符处进入编辑模式
+      // 在光标所在字符处进入编辑模式
       case 'i':
         edit |= editmode();
         break;
 
-        // 方向键上
-      case KEY_UP: 
-        curup(&cur);
-        break;
-        // 方向键下
-      case KEY_DN:
-        curdown(&cur);
-        break;
-        // 方向键左
-      case KEY_LF:
-        curleft(&cur);
-        break;
-        // 方向键右
-      case KEY_RT:
-        curright(&cur);
-        break;
-
+      /**         进入底线模式         **/
       case ':':
         switch(baselinemode(edit)) {
           case HELP:
@@ -75,11 +78,7 @@ vi(void)
         }
         break;
 
-        // case 'e' 只是调试用的
-      case 'e':
-        return;
-
-        // TODO: 添加其他case
+        // TODO: 添加其他case实现其他功能
       default:
         break;
     }
