@@ -109,6 +109,6 @@ freetx(text *tx)
     if(tx->path)
       free(tx->path);
     if(tx->head)
-      free(tx->head);
+      freelines(tx->head);
   }
 }
