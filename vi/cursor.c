@@ -201,7 +201,6 @@ showcur(cursor *cur)
   }
 
   setcurpos(pos);
-  // showcoor(cur->row, cur->col);
 }
 
 // 移动光标至某处
@@ -209,13 +208,12 @@ void
 curto(cursor *cur, int row, int col, line* l) {
   if(col < 0 || col > MAX_COL){
     // TODO: error cur pos
-  }
-  if(row < 0 || row > BASE_ROW){
+  }else if(row < 0 || row > BASE_ROW){
     // TODO: error cur pos
-  }
-  if(row == BASE_ROW && col == MAX_COL){
+  }else if(row == BASE_ROW && col == MAX_COL){
     // TODO: error cur pos
+  }else{
+    cur->row = row; cur->col = col; cur->l = l;
+    showcur(cur);
   }
-  cur->row = row; cur->col = col; cur->l = l;
-  showcur(cur);
 }
