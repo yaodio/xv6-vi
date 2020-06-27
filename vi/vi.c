@@ -121,29 +121,30 @@ freeall(void)
 int
 main(int argc, char *argv[])
 {
+  /**      文件准备阶段      **/
   // 读取文件，并组织成文本结构体，读取异常则退出
   if(readtext(argc > 1 ? argv[1] : NULL, &tx) < 0)
     exit();
   // 根据文件类型准备正则规则
   read_syntax();
 
-  // 备份屏幕上的所有字符
+  /**      屏幕清理阶段      **/
   nbytes = getcurpos() * sizeof(backup[0]);
   if((backup = (ushort*)malloc(nbytes)) == NULL){
     printf(2, "vi: cannot allocate memory to backup characters on the screen\n");
     exit();
   }
-  bks(backup, nbytes);
+  bks(backup, nbytes);  // 备份屏幕上的所有字符
+  cls();                // 清屏
+  consflag(0, 0, 0);    // 关闭控制台的flag
 
-  // 清屏，关闭控制台的flag，然后进入编辑器
-  cls();
-  consflag(0, 0, 0);
+  /**      程序运行阶段      **/
+  vi(); // 进入vi编辑器
 
-  vi();
+  /**      屏幕清理阶段      **/
+  consflag(1, 1, 1);    // 开启控制台的flag
+  rcs(backup, nbytes);  // 还原屏幕上的所有字符
+  freeall();            // 释放内存
 
-  // 退出编辑器，开启控制台的flag，并还原屏幕上的所有字符，释放内存
-  consflag(1, 1, 1);
-  rcs(backup, nbytes);
-  freeall();
   exit();
 }

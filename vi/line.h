@@ -19,6 +19,5 @@ line* newlines(uchar *chs, uint n);
 void freelines(line *l);
 line* getprevline(line *l, int i);
 line* getnextline(line *l, int i);
-void breakline(line *l, int i);
 
 #endif // VI_XV6_LINE_H

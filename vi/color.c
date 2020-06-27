@@ -9,17 +9,17 @@ uchar colorname[16][32] = {"BLACK", "BLUE", "GREEN", "CYAN", "RED", "PURPLE", "B
 uint colorint[16] = {BLACK, BLUE, GREEN, CYAN, RED, PURPLE, BROWN, GREY, DARK_GREY, LIGHT_BLUE,
                     LIGHT_GREEN, LIGHT_CYAN, LIGHT_RED, LIGHT_PURPLE, YELLOW, WHITE};
 
+// 组合文本色tcolor和背景色bcolor
+uchar getcolor(uchar tcolor, uchar bcolor)
+{
+  return (bcolor << 4) | tcolor;
+}
+
 // 给字符c涂上颜色color（color已组合了文本色和背景色信息）
 ushort
 paintc(uchar c, uchar color)
 {
   return (color << 8) | c;
-}
-
-// 组合文本色tcolor和背景色bcolor
-uchar getcolor(uchar tcolor, uchar bcolor)
-{
-  return (bcolor << 4) | tcolor;
 }
 
 // 给一行设置同样的颜色

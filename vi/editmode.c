@@ -147,6 +147,56 @@ deletec(line *l, int i)
   return 1;
 }
 
+// 在指定行的第i个字符处换行
+void
+breakline(line *l, int i)
+{
+  int j;
+  line *newl;
+
+  // 当前行的下一行属于同一段
+  if(l->paragraph){
+    // 可能与上一段同行，去掉段落标记即可
+    if(i == 0 && l->prev != NULL && l->prev->paragraph)
+      l->prev->paragraph = 0;
+    else{
+      // 将i以及后面的所有字符插入到下一行行首
+      for(j = l->n-1; j>=i; j--){
+        insertc(l->next, 0, l->chs[j]);
+        l->chs[j] = '\0';
+        l->n--;
+      }
+      l->paragraph = 0;
+      cur.row++;
+      cur.col = 0;
+      cur.l = l->next;
+    }
+  }
+    //如果下一行属于另一段，则将i以及后面的所有字符插入到新一行.
+  else{
+    newl = newlines(l->chs+i, l->n-i);
+    memset(l->chs+i, '\0', l->n-i);
+    l->n = i;
+    if(l->next != NULL){
+      l->next->prev = newl;
+      newl->next = l->next;
+    }
+    newl->prev = l;
+    l->next = newl;
+
+    cur.row++;
+    cur.col = 0;
+    cur.l = l->next;
+  }
+
+  // 光标移到了底线行，需要整个屏幕内容下移一行打印
+  if(cur.row >= BASE_ROW){
+    printlines(0, getprevline(cur.l, cur.row)->next, 1);
+    cur.row = BASE_ROW - 1;
+  }else
+    printlines(cur.row-1, cur.l->prev, 1);
+  showcur(&cur);
+}
 
 // 编辑模式，按ESC退出
 int
