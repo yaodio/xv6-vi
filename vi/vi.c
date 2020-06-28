@@ -30,7 +30,7 @@ viewmode(void)
       case 'a': curright(&cur);            // 在光标所在字符后进入编辑模式
       case 'i': edit |= editmode(); break; // 在光标所在字符处进入编辑模式
 
-      /**         进入底线模式         **/
+      /**         进入底线模式        **/
       case ':':
         switch(baselinemode(edit)) {
           // 从help函数返回
@@ -119,7 +119,7 @@ main(int argc, char *argv[])
 
   /**      程序运行阶段      **/
   // 无参启动，显示帮助页
-  if (strlen(tx.path) <= 0)
+  if (argc <= 1)
     help();
   // 打印文件的开头 SCREEN_HEIGHT-1 行
   printlines(0, tx.head, 1);

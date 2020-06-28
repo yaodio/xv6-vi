@@ -144,20 +144,15 @@ baselinemode(int edit)
 
     switch (c) {
       // 方向键左和上，光标左移
-      case KEY_LF:
-      case KEY_UP:
-        curleft(&cur);
-        break;
-        // 方向键右和下，光标右移
-      case KEY_RT:
-      case KEY_DN:
-        curright(&cur);
-        break;
-      // 删除光标处前一个位置的字符
-      case KEY_BACKSPACE:
+      case KEY_LF: case KEY_UP: curleft(&cur); break;
+      // 方向键右和下，光标右移
+      case KEY_RT: case KEY_DN: curright(&cur); break;
+      // 删除光标处的字符
+      case KEY_BACKSPACE: case KEY_DEL:
         deletec(cur.l, cur.col);
         printline(cur.row, cur.l, 0);
         break;
+      // 插入字符
       default:
         insertc(cur.l, cur.col, c);
         printline(cur.row, cur.l, 0);

@@ -172,7 +172,7 @@ breakline(line *l, int i)
       cur.l = l->next;
     }
   }
-    //如果下一行属于另一段，则将i以及后面的所有字符插入到新一行.
+  //如果下一行属于另一段，则将i以及后面的所有字符插入到新一行.
   else{
     newl = newlines(l->chs+i, l->n-i);
     memset(l->chs+i, '\0', l->n-i);
@@ -211,31 +211,17 @@ editmode(void)
   while((c = readc()) != KEY_ESC){
     switch(c){
       /**         方向键操作         **/
-      // 方向键上
-      case KEY_UP:
-        curup(&cur);
-        break;
-      // 方向键下
-      case KEY_DN:
-        curdown(&cur);
-        break;
-      // 方向键左
-      case KEY_LF:
-        curleft(&cur);
-        break;
-      // 方向键右
-      case KEY_RT:
-        curright(&cur);
-        break;
+      case KEY_UP: curup(&cur);    break;  // 方向键上
+      case KEY_DN: curdown(&cur);  break;  // 方向键下
+      case KEY_LF: curleft(&cur);  break;  // 方向键左
+      case KEY_RT: curright(&cur); break;  // 方向键右
 
       /**          删除操作          **/
       // 删除光标处前一个位置的字符
       case KEY_BACKSPACE:
-        if(curleft(&cur)){
-          edit |= deletec(cur.l, cur.col);
-          printlines(cur.row, cur.l, 1);
-        }
-        break;
+        if(!curleft(&cur)) 
+          break;
+      // 删除光标处的字符
       case KEY_DEL:
         edit |= deletec(cur.l, cur.col);
         tx.nchar--;
