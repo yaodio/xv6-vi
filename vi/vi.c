@@ -8,20 +8,12 @@ line    baseline  = {{'\0'}, {'\0'}, 0, NULL, NULL, 0};   // 底线行
 static ushort *backup;    // 屏幕字符备份
 static int nbytes;        // 屏幕字符备份内容的字节大小
 
-// 主程序（预览模式）
+// 预览模式
 void
-vi(void)
+viewmode(void)
 {
-//  printf(1, "vi begin\n");
   int edit = 0;
   uchar c;
-
-  if (strlen(tx.path) <= 0) 
-    help();
-
-  // 打印文件的开头 SCREEN_HEIGHT-1 行
-  printlines(0, tx.head, 1);
-  curto(&cur, 0, 0, tx.head);
 
   // 不断读取1个字符进行处理
   while(1){
@@ -29,47 +21,34 @@ vi(void)
     c = readc();
     switch(c){
       /**         方向键操作         **/
-      // 方向键上
-      case KEY_UP: 
-        curup(&cur);
-        break;
-      // 方向键下
-      case KEY_DN:
-        curdown(&cur);
-        break;
-      // 方向键左
-      case KEY_LF:
-        curleft(&cur);
-        break;
-      // 方向键右
-      case KEY_RT:
-        curright(&cur);
-        break;
+      case KEY_UP: curup(&cur);    break;  // 方向键上
+      case KEY_DN: curdown(&cur);  break;  // 方向键下
+      case KEY_LF: curleft(&cur);  break;  // 方向键左
+      case KEY_RT: curright(&cur); break;  // 方向键右
 
       /**    进入编辑模式的2种途径     **/
-      // 在光标所在字符后进入编辑模式
-      case 'a':
-        curright(&cur);
-      // 在光标所在字符处进入编辑模式
-      case 'i':
-        edit |= editmode();
-        break;
+      case 'a': curright(&cur);            // 在光标所在字符后进入编辑模式
+      case 'i': edit |= editmode(); break; // 在光标所在字符处进入编辑模式
 
       /**         进入底线模式         **/
       case ':':
         switch(baselinemode(edit)) {
+          // 从help函数返回
           case HELP:
             printlines(0, getprevline(cur.l, cur.row), 1);
             showcur(&cur);
             break;
+          // 保存了文件返回
           case SAVE:
             edit = 0;
             break;
+          // 需要退出程序
           case QUIT:
             return;
+          // 异常命令
           case ERROR:
-            printline(BASE_ROW, &baseline, 0);
-            c = readc();
+            printline(BASE_ROW, &baseline, 0);  // 在底线行打印异常信息
+            c = readc(); // 阻塞一下程序给用户确认异常信息，输入任意字符即可退出阻塞
             break;
           default:
             break;
@@ -139,9 +118,17 @@ main(int argc, char *argv[])
   consflag(0, 0, 0);    // 关闭控制台的flag
 
   /**      程序运行阶段      **/
-  vi(); // 进入vi编辑器
+  // 无参启动，显示帮助页
+  if (strlen(tx.path) <= 0)
+    help();
+  // 打印文件的开头 SCREEN_HEIGHT-1 行
+  printlines(0, tx.head, 1);
+  // 光标移动到左上角，指向第一行行首
+  curto(&cur, 0, 0, tx.head);
+  // 进入vi编辑器（预览模式）
+  viewmode();
 
-  /**      屏幕清理阶段      **/
+  /**      程序收尾阶段      **/
   consflag(1, 1, 1);    // 开启控制台的flag
   rcs(backup, nbytes);  // 还原屏幕上的所有字符
   freeall();            // 释放内存
