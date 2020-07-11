@@ -60,7 +60,7 @@ We welcome any improvement! Feel free to fork and make pull request. If you don'
 3. Clone **YOUR FORKED PROJECT** to your local:
 
 ```bash
-git clone https://github.com/{YOUR NAME}/xv6.git
+git clone https://github.com/{YOUR NAME}/xv6-vi.git
 ```
 
 4. Set this project as upstream and checkout to a new branch where you add your new feature:
