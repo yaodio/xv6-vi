@@ -8,7 +8,7 @@ This is a tiny vi for [xv6](https://github.com/mit-pdos/xv6-public.git).
 
 ```bash
 # ubuntu or debian
-git clone https://gitee.com/yaodio/xv6.git
+git clone https://gitee.com/yaodio/xv6-vi.git
 sudo apt-get install qemu
 cd xv6
 make
@@ -26,21 +26,20 @@ QEMU usage:
 
 ## Feature
 
-- normal mode
+- view mode
   - [x] cursor movement
 - insert mode
   - [x] insert and delete (i, a and backspace)
   - [x] jump to line begin (0)
   - [x] jump to line end ($)
-  - [x] jump to screnn begin (H)
+  - [x] jump to screen begin (H)
   - [x] jump to last line begin of screen (L)
   - [x] quit to normal (ESC)
 - baseline mode
-  - [x] write file (:w)
+  - [x] write file to the origin or given path (:w [path])
   - [x] quit (:q)
-  - [x] write and quit (:wq)
-  - [x] force quit (:q!)
-- help page
+  - [x] write file to the origin or given path and quit (:wq [path])
+  - [x] force to quit (:q!)
   - [x] show help page (:h)
 - syntax highlight
   - [x] read syntax highlight rule file [LANG].vi
@@ -68,7 +67,7 @@ git clone https://github.com/{YOUR NAME}/xv6.git
 
 ```bash
 cd xv6
-git remote add upstream https://gitee.com/yaodio/xv6.git
+git remote add upstream https://gitee.com/yaodio/xv6-vi.git
 git checkout {YOUR_BRANCH}
 ```
 
