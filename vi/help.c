@@ -27,7 +27,7 @@ static char helpc[] =
                 "|        press [q] to quit this help page         |\n"
                 "---------------------------------------------------\n"
                 "\n"
-                "https://gitee.com/yaodio/xv6 *STAR US!\n"
+                "https://gitee.com/yaodio/xv6-vi *STAR US!\n"
                 "Copyright (c) 2020 @yaodio, @sexy_boy, @stephenark\n";
 
 static text helptx = {NULL, NULL, 0, 0};
