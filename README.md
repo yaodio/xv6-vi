@@ -8,7 +8,7 @@ This is a tiny vi for [xv6](https://github.com/mit-pdos/xv6-public.git).
 
 ```bash
 # ubuntu or debian
-git clone https://gitee.com/yaodio/xv6-vi.git
+git clone https://github.com/yaodio/xv6-vi.git
 sudo apt-get install qemu
 cd xv6
 make
@@ -67,7 +67,7 @@ git clone https://github.com/{YOUR NAME}/xv6-vi.git
 
 ```bash
 cd xv6
-git remote add upstream https://gitee.com/yaodio/xv6-vi.git
+git remote add upstream https://github.com/yaodio/xv6-vi.git
 git checkout {YOUR_BRANCH}
 ```
 
