@@ -1,5 +1,5 @@
 /*
- * b.c
+ * test.c
  * This is a test file
  */
 

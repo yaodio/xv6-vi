@@ -21,6 +21,7 @@
 #define SYS_mkdir  20
 #define SYS_close  21
 
+/* custom syscall */
 #define SYS_getcurpos  22
 #define SYS_setcurpos  23
 #define SYS_putcc      24

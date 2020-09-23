@@ -7,6 +7,7 @@
 #include "param.h"
 #include "traps.h"
 #include "spinlock.h"
+#include "sleeplock.h"
 #include "fs.h"
 #include "file.h"
 #include "memlayout.h"
@@ -24,7 +25,6 @@ static struct {
   int locking;
 } cons;
 
-// 打印整数xx，指定进制为base，sign为正负号
 static void
 printint(int xx, int base, int sign)
 {
@@ -51,7 +51,6 @@ printint(int xx, int base, int sign)
 }
 //PAGEBREAK: 50
 
-// 打印到控制台上，不同于printf，后者可打印到指定描述符
 // Print to the console. only understands %d, %x, %p, %s.
 void
 cprintf(char *fmt, ...)
@@ -77,23 +76,23 @@ cprintf(char *fmt, ...)
     if(c == 0)
       break;
     switch(c){
-    case 'd': // 十进制有符号整数
+    case 'd':
       printint(*argp++, 10, 1);
       break;
-    case 'x': // 十六进制无符号整数
-    case 'p': // 十六进制无符号整数（指针地址）
+    case 'x':
+    case 'p':
       printint(*argp++, 16, 0);
       break;
-    case 's': // 字符串
+    case 's':
       if((s = (char*)*argp++) == 0)
         s = "(null)";
       for(; *s; s++)
         consputc(*s);
       break;
-    case '%': // 输出百分号%
+    case '%':
       consputc('%');
       break;
-    default:  // 其他未知情况输出百分号加上该字符%c
+    default:
       // Print unknown % sequence to draw attention.
       consputc('%');
       consputc(c);
@@ -110,10 +109,11 @@ panic(char *s)
 {
   int i;
   uint pcs[10];
-  
+
   cli();
   cons.locking = 0;
-  cprintf("cpu%d: panic: ", cpu->id);
+  // use lapiccpunum so that we can call panic from mycpu()
+  cprintf("lapicid %d: panic: ", lapicid());
   cprintf(s);
   cprintf("\n");
   getcallerpcs(&s, pcs);
@@ -128,17 +128,6 @@ panic(char *s)
 #define BACKSPACE 0x100
 #define CRTPORT 0x3d4
 static ushort *crt = (ushort*)P2V(0xb8000);  // CGA memory
-
-// 在屏幕的pos位置处设置字符（不移动光标），传入的int c仅低16位有效
-// 其中从右往左数：
-// 第0~7位   字符的ascii码值
-// 第8~11位  文本色
-// 第12~15位 背景色
-void
-showc(int pos, int c)
-{
-  crt[pos] = c & 0xffff;
-}
 
 // 获取光标位置
 int
@@ -169,6 +158,193 @@ setcurpos(int pos)
   outb(CRTPORT+1, pos);
 }
 
+// 在屏幕的 pos 位置处设置字符（不移动光标），传入的 int c 仅低 16 位有效
+// 其中从右往左数：
+// 0~7   字符的 ascii 码值
+// 8~11  文本色
+// 12~15 背景色
+void
+showc(int pos, int c)
+{
+  crt[pos] = c;
+}
+
+static void
+cgaputc(int c)
+{
+  int pos = getcurpos();
+
+  // 回车键 加上这一行剩余的空白数，即 pos 移到下一行行首
+  if(c == '\n')
+    pos += SCREEN_WIDTH - pos%SCREEN_WIDTH;
+  else if(c == BACKSPACE){ // 退格键 pos 退 1 个
+    if(pos > 0) --pos;
+    crt[pos] = ' ';
+  } else showc(pos++, (c&0xff) | 0x0700);
+
+  if(pos < 0 || pos > MAX_CHAR)
+    panic("pos under/overflow");
+
+  if((pos/SCREEN_WIDTH) >= (SCREEN_HEIGHT-1)){  // Scroll up.
+    memmove(crt, crt+SCREEN_WIDTH, sizeof(crt[0])*(SCREEN_HEIGHT-2)*SCREEN_WIDTH);
+    pos -= SCREEN_WIDTH;
+    memset(crt+pos, 0, sizeof(crt[0])*((SCREEN_HEIGHT-1)*SCREEN_WIDTH - pos));
+  }
+
+  setcurpos(pos);
+  showc(pos, (crt[pos]&0xff) | 0x0700);
+}
+
+void
+consputc(int c)
+{
+  if(panicked){
+    cli();
+    for(;;)
+      ;
+  }
+
+  if(c == BACKSPACE){
+    uartputc('\b'); uartputc(' '); uartputc('\b');
+  } else
+    uartputc(c);
+  cgaputc(c);
+}
+
+#define INPUT_BUF 128
+struct {
+  char buf[INPUT_BUF];
+  uint r;  // Read index
+  uint w;  // Write index
+  uint e;  // Edit index
+} input;
+
+#define C(x)  ((x)-'@')  // Control-x
+
+static int showflag = 1;      // 为 0 时不打印到屏幕上
+static int bufflag = 1;       // 为 0 时不缓存键盘输入，马上读取 1 个字符
+static int backspaceflag = 1; // 为 0 时不拦截退格键
+
+// 设置 showflag, bufflag, backspaceflag
+void
+setflag(int sf, int bf, int bsf)
+{
+  showflag = sf;
+  bufflag = bf;
+  backspaceflag = bsf;
+}
+
+void
+consoleintr(int (*getc)(void))
+{
+  int c, doprocdump = 0;
+
+  acquire(&cons.lock);
+  while((c = getc()) >= 0){
+    switch(c){
+    case C('P'):  // Process listing.
+      // procdump() locks cons.lock indirectly; invoke later
+      doprocdump = 1;
+      break;
+    case C('U'):  // Kill line.
+      while(input.e != input.w &&
+            input.buf[(input.e-1) % INPUT_BUF] != '\n'){
+        input.e--;
+        consputc(BACKSPACE);
+      }
+      break;
+    case C('H'): case '\x7f':  // Backspace
+      if (backspaceflag) {
+        if(input.e != input.w){
+          input.e--;
+          consputc(BACKSPACE);
+        }
+        break;
+      }
+    default:
+      if(c != 0 && input.e-input.r < INPUT_BUF){
+        c = (c == '\r') ? '\n' : c;
+        input.buf[input.e++ % INPUT_BUF] = c;
+        if (showflag) consputc(c);
+        if (!bufflag || c == '\n' || c == C('D') || input.e == input.r+INPUT_BUF){
+          input.w = input.e;
+          wakeup(&input.r);
+        }
+      }
+      break;
+    }
+  }
+  release(&cons.lock);
+  if(doprocdump) {
+    procdump();  // now call procdump() wo. cons.lock held
+  }
+}
+
+int
+consoleread(struct inode *ip, char *dst, int n)
+{
+  uint target;
+  int c;
+
+  iunlock(ip);
+  target = n;
+  acquire(&cons.lock);
+  while(n > 0){
+    while(input.r == input.w){
+      if(myproc()->killed){
+        release(&cons.lock);
+        ilock(ip);
+        return -1;
+      }
+      sleep(&input.r, &cons.lock);
+    }
+    c = input.buf[input.r++ % INPUT_BUF];
+    if(c == C('D')){  // EOF
+      if(n < target){
+        // Save ^D for next time, to make sure
+        // caller gets a 0-byte result.
+        input.r--;
+      }
+      break;
+    }
+    *dst++ = c;
+    --n;
+    if(c == '\n')
+      break;
+  }
+  release(&cons.lock);
+  ilock(ip);
+
+  return target - n;
+}
+
+int
+consolewrite(struct inode *ip, char *buf, int n)
+{
+  int i;
+
+  iunlock(ip);
+  acquire(&cons.lock);
+  for(i = 0; i < n; i++)
+    consputc(buf[i] & 0xff);
+  release(&cons.lock);
+  ilock(ip);
+
+  return n;
+}
+
+void
+consoleinit(void)
+{
+  initlock(&cons.lock, "console");
+
+  devsw[CONSOLE].write = consolewrite;
+  devsw[CONSOLE].read = consoleread;
+  cons.locking = 1;
+
+  ioapicenable(IRQ_KBD, 0);
+}
+
 // 清屏
 void
 clearscreen(void)
@@ -193,188 +369,3 @@ recoverscreen(ushort *backup, int nbytes)
   memmove(crt, backup, nbytes);
   setcurpos(pos);
 }
-
-// 向屏幕输出1个字符
-static void
-cgaputc(int c)
-{
-  int pos = getcurpos();
-
-  // 回车键 加上这一行剩余的空白数，即pos移到下一行行首
-  if(c == '\n')
-    pos += SCREEN_WIDTH - pos%SCREEN_WIDTH;
-  // 退格键 pos退1个
-  else if(c == BACKSPACE){
-    if(pos > 0) --pos;
-    crt[pos] = ' ';
-  } else
-    showc(pos++, (c&0xff) | 0x0700);
-    // crt[pos++] = (c&0xff) | 0x0700;  // black on white
-  
-  if((pos/SCREEN_WIDTH) >= SCREEN_HEIGHT){  // Scroll up.
-    memmove(crt, crt+SCREEN_WIDTH, sizeof(crt[0])*(SCREEN_HEIGHT-1)*SCREEN_WIDTH);
-    pos -= SCREEN_WIDTH;
-    memset(crt+pos, 0, sizeof(crt[0])*(MAX_CHAR - pos));
-  }
-  
-  setcurpos(pos);
-  showc(pos, (crt[pos]&0xff) | 0x0700);
-}
-
-void
-consputc(int c)
-{
-  if(panicked){
-    cli();
-    for(;;)
-      ;
-  }
-
-  if(c == BACKSPACE){
-    uartputc('\b'); uartputc(' '); uartputc('\b');
-  } else
-    uartputc(c);
-  cgaputc(c);
-}
-
-#define INPUT_BUF 128
-struct {
-  struct spinlock lock;
-  char buf[INPUT_BUF];
-  uint r;  // Read index
-  uint w;  // Write index
-  uint e;  // Edit index
-} input;
-
-#define C(x)  ((x)-'@')  // Control-x
-
-static int showflag = 1;      // 为0时不打印到屏幕上
-static int bufflag = 1;       // 为0时不缓存键盘输入，马上读取1个字符
-static int backspaceflag = 1; // 为0时不拦截退格键
-// 设置showflag、bufflag、backspaceflag
-void
-setflag(int sf, int bf, int bsf)
-{
-  showflag = sf;
-  bufflag = bf;
-  backspaceflag = bsf;
-}
-
-// 控制台的键盘输入中断处理函数（见trap.c）
-void
-consoleintr(int (*getc)(void))
-{
-  int c;
-
-  acquire(&input.lock);
-  while((c = getc()) >= 0){
-    switch(c){
-    case C('P'):  // Process listing.
-      procdump();
-      break;
-    case C('R'):  // Sleeping process listing.
-      print_sleeping();
-      break;
-    case C('U'):  // Kill line. 删除一整行
-      while(input.e != input.w &&
-            input.buf[(input.e-1) % INPUT_BUF] != '\n'){
-        input.e--;
-        consputc(BACKSPACE);
-      }
-      break;
-    case C('H'): case '\x7f':  // Backspace ctrl+H等效于退格键
-      if(backspaceflag){
-        if(input.e != input.w){
-          input.e--;
-          consputc(BACKSPACE);
-        }
-        break;
-      }
-    default:
-      if(c != 0 && input.e-input.r < INPUT_BUF){
-        c = (c == '\r') ? '\n' : c;
-        input.buf[input.e++ % INPUT_BUF] = c;
-        if(showflag)
-          consputc(c);
-        if(!bufflag || c == '\n' || c == C('D') || input.e == input.r+INPUT_BUF){
-          input.w = input.e;
-          wakeup(&input.r);
-        }
-      }
-      break;
-    }
-  }
-  release(&input.lock);
-}
-
-// 处理定向到控制台的输入
-int
-consoleread(struct inode *ip, char *dst, int n)
-{
-  uint target;
-  int c;
-
-  iunlock(ip);
-  target = n;
-  acquire(&input.lock);
-  while(n > 0){
-    while(input.r == input.w){
-      if(proc->killed){
-        release(&input.lock);
-        ilock(ip);
-        return -1;
-      }
-      sleep(&input.r, &input.lock);
-    }
-    c = input.buf[input.r++ % INPUT_BUF];
-    if(c == C('D')){  // EOF
-      if(n < target){
-        // Save ^D for next time, to make sure
-        // caller gets a 0-byte result.
-        input.r--;
-      }
-      break;
-    }
-    *dst++ = c;
-    --n;
-    if(c == '\n')
-      break;
-  }
-  release(&input.lock);
-  ilock(ip);
-
-  return target - n;
-}
-
-// 处理定向到控制台的输出，如printf
-int
-consolewrite(struct inode *ip, char *buf, int n)
-{
-  int i;
-
-  iunlock(ip);
-  acquire(&cons.lock);
-  for(i = 0; i < n; i++)
-    consputc(buf[i] & 0xff);
-  release(&cons.lock);
-  ilock(ip);
-
-  return n;
-}
-
-// 控制台初始化
-void
-consoleinit(void)
-{
-  initlock(&cons.lock, "console");
-  initlock(&input.lock, "input");
-  
-  // 指定定向到控制台的输入输出处理函数
-  devsw[CONSOLE].write = consolewrite;
-  devsw[CONSOLE].read = consoleread;
-  cons.locking = 1;
-
-  picenable(IRQ_KBD);
-  ioapicenable(IRQ_KBD, 0);
-}
-

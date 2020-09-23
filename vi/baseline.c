@@ -5,6 +5,32 @@ extern cursor cur;
 extern line baseline;
 
 int
+savefile(line* baseline)
+{
+  char path[MAX_COL];
+  int i;
+
+  memset(path, '\0', MAX_COL);
+  for(i = 0; i < MAX_COL && baseline->chs[i] != '\0'; i++)
+    if(baseline->chs[i] == ' '){
+      i++;
+      break;
+    }
+  memmove(path, baseline->chs+i, baseline->n - i);
+  if(strlen(path) > 0){
+    strcpy(tx.path, path);
+  }
+
+  if(writetext(&tx) < 0){
+    setline(baseline, "Failed to save", 14, ERROR_COLOR);
+    return 0;
+  }
+
+  tx.exist = 1;
+  return 1;
+}
+
+int
 baselinehandler(line* baseline, int edit)
 {
   if(startswidth(baseline->chs, ":q!", 3)) {
@@ -31,39 +57,13 @@ baselinehandler(line* baseline, int edit)
   }
 }
 
-int
-savefile(line* baseline)
-{
-  char path[MAX_COL];
-  int i;
-
-  memset(path, '\0', MAX_COL);
-  for(i = 0; i < MAX_COL && baseline->chs[i] != '\0'; i++)
-    if(baseline->chs[i] == ' '){
-      i++;
-      break;
-    }
-  memmove(path, baseline->chs+i, baseline->n - i);
-  if(strlen(path) > 0){
-    strcpy(tx.path, path);
-  }
-
-  if(writetext(&tx) < 0){
-    setline(baseline, "Failed to save", 14, ERROR_COLOR);
-    return 0;
-  }
-
-  tx.exist = 1;
-  return 1;
-}
-
 void
 showpathmsg(void)
 {
   int i = 0;
   int len = 0;
   int pos = MAX_COL * BASE_ROW;
-  uchar base[MAX_COL];
+  char base[MAX_COL];
   char* filename;
   
   memset(base, '\0', MAX_COL);

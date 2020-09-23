@@ -27,8 +27,8 @@ static char helpc[] =
                 "|        press [q] to quit this help page         |\n"
                 "---------------------------------------------------\n"
                 "\n"
-                "https://gitee.com/yaodio/xv6-vi *STAR US!\n"
-                "Copyright (c) 2020 @yaodio, @sexy_boy, @stephenark\n";
+                "https://github.com/yaodio/xv6-vi *STAR US!\n"
+                "Copyright (c) 2020 @yaodio, @sexy_boy, @stephenark30\n";
 
 static text helptx = {NULL, NULL, 0, 0};
 
@@ -106,7 +106,6 @@ help(void)
   
   cls();
   printlines(0, helptx.head, 0);
-  while ((c = readc()) != 'q')
-    ;
+  while ((c = readc()) != 'q') ;
   cls();
 }

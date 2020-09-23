@@ -7,6 +7,7 @@ x86.h
 asm.h
 mmu.h
 elf.h
+date.h
 
 # entering xv6
 entry.S
@@ -35,12 +36,14 @@ sysproc.c
 
 # file system
 buf.h
+sleeplock.h
 fcntl.h
 stat.h
 fs.h
 file.h
 ide.c
 bio.c
+sleeplock.c
 log.c
 fs.c
 file.c
@@ -58,11 +61,9 @@ mp.h
 mp.c
 lapic.c
 ioapic.c
-picirq.c
 kbd.h
 kbd.c
 console.c
-timer.c
 uart.c
 
 # user-level
@@ -75,3 +76,5 @@ sh.c
 bootasm.S
 bootmain.c
 
+# link
+kernel.ld

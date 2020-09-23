@@ -16,3 +16,4 @@ mkfs
 .gdbinit
 .idea
 dist
+cmake-build-debug

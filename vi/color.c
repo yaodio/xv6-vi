@@ -4,7 +4,7 @@ extern text tx;
 map_t regex_map, colormap;
 list *syntax_keys;
 
-uchar colorname[16][32] = {"BLACK", "BLUE", "GREEN", "CYAN", "RED", "PURPLE", "BROWN", "GREY", "DARK_GREY", "LIGHT_BLUE",
+char colorname[16][32] = {"BLACK", "BLUE", "GREEN", "CYAN", "RED", "PURPLE", "BROWN", "GREY", "DARK_GREY", "LIGHT_BLUE",
                           "LIGHT_GREEN", "LIGHT_CYAN", "LIGHT_RED", "LIGHT_PURPLE", "YELLOW", "WHITE"};
 uint colorint[16] = {BLACK, BLUE, GREEN, CYAN, RED, PURPLE, BROWN, GREY, DARK_GREY, LIGHT_BLUE,
                     LIGHT_GREEN, LIGHT_CYAN, LIGHT_RED, LIGHT_PURPLE, YELLOW, WHITE};
@@ -63,12 +63,13 @@ read_syntax(void)
   syntax_keys = new_list();
 
   int i;
-  for (i = strlen(tx.path)-1; i >= 0; i--)
+  for (i = (int)strlen(tx.path)-1; i >= 0; i--)
     if (tx.path[i] == '.') break;
   if (i < 0) return;
   char *vi_file = malloc((strlen(tx.path) - i + 3) * sizeof(char));
-  memmove(vi_file, tx.path + i + 1, strlen(tx.path) - i - 1);
+  memmove(vi_file, tx.path + i + 1, (int)strlen(tx.path) - i - 1);
   memmove(vi_file + strlen(tx.path) - i - 1, ".vi\0", 4);
+  logging((TRACE_FILE, "[read_syntax] "), (TRACE_FILE, "opening highlight rule %s\n", vi_file));
 
   int fd;                 // 文件描述符
   struct stat st;         // 文件信息

@@ -11,6 +11,8 @@ readtext(char *path, text *tx)
   uchar *chs;             // 文件中的所有字符
   line *l;                // 迭代用的临时指针
 
+  logging((TRACE_FILE, "[readtext] "), (TRACE_FILE, "opening %s\n", path));
+
   tx->path = (char*)malloc(MAX_COL);
   memset(tx->path, '\0', MAX_COL);
   // 输入了路径
@@ -19,6 +21,7 @@ readtext(char *path, text *tx)
 
   // 路径存在且可被打开
   if(path != NULL && (fd = open(path, O_RDONLY)) >= 0){
+    logging((TRACE_FILE, "[readtext] "), (TRACE_FILE, "reading...\n"));
     // 获取文件信息失败则退出
     if(fstat(fd, &st) < 0){
       printf(2, "vi: cannot stat %s\n", path);
@@ -33,6 +36,7 @@ readtext(char *path, text *tx)
       return -1;
     }
 
+    logging((TRACE_FILE, "[readtext] "), (TRACE_FILE, "reading succeed\n"));
     // 走到这里说明成功打开了一个文件，读取其中的所有字符
     nbytes = st.size;
     chs = (uchar*)malloc(nbytes);
@@ -47,17 +51,22 @@ readtext(char *path, text *tx)
     tx->exist = 0;
   }
 
+  logging((TRACE_FILE, "[readtext] "), (TRACE_FILE, "creating new lines...\n"));
   // 将文件内容组织成行结构，并用head指针记录头节点
   l = tx->head = newlines(chs, nbytes);
 
+  logging((TRACE_FILE, "[readtext] "), (TRACE_FILE, "counting characters...\n"));
   // 字符计数
   while(l->next != NULL){
     tx->nchar += l->n;
     l = l->next;
   }
 
+  logging((TRACE_FILE, "[readtext] "), (TRACE_FILE, "creating new lines...\n"));
   if(chs)
     free(chs);
+  logging((TRACE_FILE, "[readtext] "), ("%s loaded\n", path));
+
   return 0;
 }
 

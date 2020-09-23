@@ -1,3 +1,6 @@
+#ifndef XV6_KBD_H
+#define XV6_KBD_H
+
 // PC keyboard interface constants
 
 #define KBSTATP         0x64    // kbd controller status port(I)
@@ -19,16 +22,16 @@
 // Special keycodes
 #define KEY_HOME        0xE0
 #define KEY_END         0xE1
-#define KEY_UP          0xE2    // 上
-#define KEY_DN          0xE3    // 下
-#define KEY_LF          0xE4    // 左
-#define KEY_RT          0xE5    // 右
+#define KEY_UP          0xE2
+#define KEY_DN          0xE3
+#define KEY_LF          0xE4
+#define KEY_RT          0xE5
 #define KEY_PGUP        0xE6
 #define KEY_PGDN        0xE7
 #define KEY_INS         0xE8
 #define KEY_DEL         0xE9
-#define KEY_ESC         0x1B    // ESC
-#define KEY_BACKSPACE   0x08    // BACKSPACE
+#define KEY_ESC         0x1B
+#define KEY_BACKSPACE   0x08
 
 // C('A') == Control-A
 #define C(x) (x - '@')
@@ -111,3 +114,5 @@ static uchar ctlmap[256] =
   [0x97] KEY_HOME,  [0xCF] KEY_END,
   [0xD2] KEY_INS,   [0xD3] KEY_DEL
 };
+
+#endif // XV6_KBD_H

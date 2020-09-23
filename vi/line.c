@@ -55,6 +55,7 @@ newblankline(void)
   setline(l, NULL, 0, DEFAULT_COLOR);
   l->paragraph = 0;
   l->prev = l->next = NULL;
+  return l;
 }
 
 // 根据传入的字符数组，构造双向链表，每个节点是一行
@@ -68,16 +69,18 @@ newlines(uchar *chs, uint n)
   if(chs == NULL || n == 0)
     return l;
 
+  logging((TRACE_FILE, "[newlines] "), (TRACE_FILE, "creating new lines\n"));
   for(i = 0; i < n; i++){
+    logging((TRACE_FILE, "[newlines] "), (TRACE_FILE, "creating new line %d/%d\n", i + 1, n));
     // 换行
     if(chs[i] == '\n'){
-      l->next = newlines(chs+i+1, n-i-1);
+      l->next = newlines(chs+i+1, n-i-1); // FIXME: remove recursion, other wise it will trap
       l->next->prev = l;
       break;
     }
     // 写满一行，则下一行与该行同段
     if(i >= MAX_COL){
-      l->next = newlines(chs+i, n-i);
+      l->next = newlines(chs+i, n-i); // FIXME: remove recursion, other wise it will trap
       l->next->prev = l;
       l->paragraph = 1;
       break;
@@ -87,6 +90,7 @@ newlines(uchar *chs, uint n)
     l->n++;
   }
 
+  logging((TRACE_FILE, "[newlines] "), (TRACE_FILE, "new line: %s\n", l->chs));
   return l;
 }
 
