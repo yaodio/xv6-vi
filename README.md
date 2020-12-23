@@ -10,7 +10,8 @@ This is a tiny vi for [xv6](https://github.com/mit-pdos/xv6-public.git).
 # ubuntu or debian
 git clone https://github.com/yaodio/xv6-vi.git
 sudo apt-get install qemu
-cd xv6
+# on ubuntu 20, you may need to install qemu-system
+cd xv6-vi
 make
 make qemu
 
